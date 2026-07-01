@@ -1,0 +1,13 @@
+# Minimal image for running vcs-core overlay tests and wander sessions.
+# Build: podman build -t vcs-core-test -f packages/core/containers/Containerfile .
+# Run:   podman run --rm --privileged --security-opt label=disable vcs-core-test
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        fuse-overlayfs fuse3 git sqlite3 \
+        gcc libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /workspace

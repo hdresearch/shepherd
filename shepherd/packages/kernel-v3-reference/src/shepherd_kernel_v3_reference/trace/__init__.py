@@ -1,0 +1,93 @@
+"""Normalized trace records and validation for the v3 core fragment.
+
+Import `shepherd_kernel_v3_reference.trace.machine.run_trace` directly for one-shot snapshots, or
+`TraceSession` when a suspended continuation may be resumed later.
+"""
+
+from shepherd_kernel_v3_reference.trace.machine import (
+    TraceDebugEvidence,
+    TraceEvaluatorEngine,
+    TraceResult,
+    TraceSession,
+    run_trace,
+)
+from shepherd_kernel_v3_reference.trace.records import (
+    ContinuationDelay,
+    ContinuationPending,
+    ContinuationResume,
+    EffectCapture,
+    EffectDeclaration,
+    ForkBranch,
+    ForkSummary,
+    HandlerForward,
+    HandlerSelection,
+    ResumeReturn,
+    ResumptionHandle,
+    SelectionClosed,
+    TerminalResumeResult,
+    TraceRecord,
+)
+from shepherd_kernel_v3_reference.trace.serde import (
+    TraceSerializationError,
+    dumps_trace,
+    loads_trace,
+    trace_from_json,
+    trace_record_from_json,
+    trace_record_to_json,
+    trace_to_json,
+)
+from shepherd_kernel_v3_reference.trace.validate import (
+    TraceValidationError,
+    validate_core0_trace,
+    validate_core0_trace_prefix,
+    validate_core_a_trace,
+    validate_core_a_trace_prefix,
+    validate_core_trace,
+    validate_core_trace_prefix,
+    validate_generated_trace_against_program,
+    validate_publication_experimental_trace,
+    validate_publication_experimental_trace_prefix,
+    validate_runtime_trace,
+    validate_runtime_trace_prefix,
+)
+
+__all__ = [
+    "ContinuationResume",
+    "ContinuationDelay",
+    "ContinuationPending",
+    "EffectCapture",
+    "EffectDeclaration",
+    "ForkBranch",
+    "ForkSummary",
+    "HandlerForward",
+    "HandlerSelection",
+    "ResumeReturn",
+    "ResumptionHandle",
+    "SelectionClosed",
+    "TerminalResumeResult",
+    "TraceResult",
+    "TraceDebugEvidence",
+    "TraceRecord",
+    "TraceSession",
+    "TraceEvaluatorEngine",
+    "TraceSerializationError",
+    "TraceValidationError",
+    "dumps_trace",
+    "loads_trace",
+    "run_trace",
+    "trace_from_json",
+    "trace_record_from_json",
+    "trace_record_to_json",
+    "trace_to_json",
+    "validate_generated_trace_against_program",
+    "validate_publication_experimental_trace",
+    "validate_publication_experimental_trace_prefix",
+    "validate_core0_trace",
+    "validate_core0_trace_prefix",
+    "validate_core_a_trace",
+    "validate_core_a_trace_prefix",
+    "validate_core_trace",
+    "validate_core_trace_prefix",
+    "validate_runtime_trace",
+    "validate_runtime_trace_prefix",
+]

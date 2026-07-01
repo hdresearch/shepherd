@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "commons-vcs"
+version = "0.1.0"
+description = "Shared content-addressed graph kernel for profile-owned version-control semantics"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = []
+
+[project.optional-dependencies]
+git = [
+    "pygit2>=1.13.0",
+]
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<9.0.0",
+    "pygit2>=1.13.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/commons_vcs"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --durations=5"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (>1s execution time)",
+    "integration: marks tests requiring external resources or network",
+    "container: marks tests requiring Podman/container runtime",
+    "vm_overlay: marks tests requiring macOS Podman Machine with VM overlay",
+    "e2e: marks end-to-end tests that run actual containers",
+    "benchmark: marks performance benchmark tests",
+    "spike: marks exploratory/documentation tests (not regression tests)",
+    "requires: marks tests as requiring a specific library",
+]
+
+[tool.mypy]
+strict = true
+
+# Ruff: see ruff.toml at workspace root.

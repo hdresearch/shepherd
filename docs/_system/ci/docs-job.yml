@@ -1,0 +1,33 @@
+# REFERENCE SNIPPET (not wired): the docs CI job in the repo's check-job shape
+# (DESIGN 1.10). In the real integration this is appended to
+# .github/workflows/ci.yml jobs; pin every action to a full-length commit SHA
+# like the sibling jobs (the <pinned-sha> placeholders below).
+docs:
+  name: docs
+  runs-on: ubuntu-latest
+  env:
+    # The whole toolchain depends on UTF-8 (em-dashes/emoji in the content) and
+    # the mkdocs-2 pre-release nag is silenced. run.py also sets these in-process;
+    # declaring them here keeps the env honest if a step is run directly.
+    PYTHONUTF8: "1"
+    NO_MKDOCS_2_WARNING: "true"
+  steps:
+    - uses: actions/checkout@<pinned-sha>
+    - uses: astral-sh/setup-uv@<pinned-sha>
+    - uses: actions/setup-python@<pinned-sha>
+      with: { python-version: "3.12" }
+    # Reproducible deps: every step installs from the committed, fully-pinned
+    # (hash-locked) docs-requirements.txt via `uv run --with-requirements`
+    # inside run.py -- nothing floats latest. Re-pin by editing
+    # docs-requirements.in and recompiling (see that file's header).
+    # Cross-platform runner = the single source of truth for the pipeline
+    # (drift -> gates -> example tests -> strict builds -> built-output assertion).
+    - run: uv run --no-project python run.py check
+    - uses: actions/upload-artifact@<pinned-sha>
+      with:
+        name: docs-internal-reviewer-build   # short retention; never deploy
+        path: site/internal
+        retention-days: 7
+    # NEVER deploy site/internal to a public origin (it is the full reviewer
+    # tree: scaffold pages + generated API). Only site/public is publishable,
+    # and the built-output assertion in `run.py check` guards its page set.

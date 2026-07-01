@@ -1,0 +1,25 @@
+From db5c31562b29761a24091c63a653ce5695483824 Mon Sep 17 00:00:00 2001
+From: Ed Rogers <edwin.rogers@gmail.com>
+Date: Mon, 31 Oct 2022 10:29:50 -0500
+Subject: [PATCH 09/14] Remove src from import path in test
+
+---
+ tests/test_main.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/test_main.py b/tests/test_main.py
+index b99623f..2fd1a80 100644
+--- a/tests/test_main.py
++++ b/tests/test_main.py
+@@ -35,7 +35,7 @@ def test_duplicate_option_flags_raises_exception(monkeypatch):
+     monkeypatch.setattr(click.decorators, "_param_memo", _param_memo_safe)
+ 
+     # import here (after monkeypatch) because decorators are run on import
+-    from src.rich_cli.__main__ import main
++    from rich_cli.__main__ import main
+ 
+     runner = CliRunner()
+     runner.invoke(main)
+-- 
+2.50.1 (Apple Git-155)
+

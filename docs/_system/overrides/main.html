@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+<!--
+  Announce bar — the one small partial the handoff sanctions. Dark band + teal
+  "PREVIEW" pill (the theme's announcement treatment), Shepherd-appropriate copy
+  (NOT the Helix placeholder text). Styled in stylesheets/extra.css (.md-banner).
+-->
+{% block announce %}
+  <span class="shp-announce">
+    <span class="shp-announce__pill">Preview</span>
+    Shepherd v1.0-dev — prototype documentation, published scaffold-first.
+  </span>
+{% endblock %}

@@ -1,0 +1,25 @@
+From a0ff19489a9648d20e26b02a31466de2e2d1f5ac Mon Sep 17 00:00:00 2001
+From: Will McGugan <willmcgugan@gmail.com>
+Date: Sat, 30 Apr 2022 13:56:27 +0100
+Subject: [PATCH 01/14] fix for multiple lines
+
+---
+ src/rich_cli/__main__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index e274fe8..146bd8b 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -901,7 +901,7 @@ def render_ipynb(
+                 )
+                 data = output["data"].get("text/plain", "")
+                 if isinstance(data, list):
+-                    renderable += Text.from_ansi("\n".join(data))
++                    renderable += Text.from_ansi("".join(data))
+                 else:
+                     renderable += Text.from_ansi(data)
+                 new_line = True
+-- 
+2.50.1 (Apple Git-155)
+

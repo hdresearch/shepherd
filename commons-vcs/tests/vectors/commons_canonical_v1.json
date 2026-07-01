@@ -1,0 +1,37 @@
+[
+  {
+    "name": "null",
+    "input": null,
+    "canonical_text": "commons.canonical.v1\nnull",
+    "digest": "sha256:d44a3577f584ab5b947d55973293bea28757f074fee49a8544fee6e9403d4c5c"
+  },
+  {
+    "name": "nested",
+    "input": {
+      "b": [
+        true,
+        null,
+        "x"
+      ],
+      "a": 1
+    },
+    "canonical_text": "commons.canonical.v1\n{\"a\":1,\"b\":[true,null,\"x\"]}",
+    "digest": "sha256:a71f9f04a72a5ac702f6fb6d17ed15ca5738a12a63d881b98204224fe7e95ff9"
+  },
+  {
+    "name": "unicode",
+    "input": {
+      "text": "café ☕"
+    },
+    "canonical_text": "commons.canonical.v1\n{\"text\":\"caf\\u00e9 \\u2615\"}",
+    "digest": "sha256:8fc2a77c4816863637ce94c7f32a4b2bbd527c7278138f2a672abf963c78c0d2"
+  },
+  {
+    "name": "large-int",
+    "input": {
+      "n": 9007199254740993
+    },
+    "canonical_text": "commons.canonical.v1\n{\"n\":9007199254740993}",
+    "digest": "sha256:bf7c3cc5379bd442a2a57cd3aed8938c55101412dde53425e3e618a086d987ca"
+  }
+]

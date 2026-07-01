@@ -1,0 +1,30 @@
+# Scenario: Refactor - Split Formatters
+# --------------------------------------
+# Extract formatter logic into a separate module.
+# The code has been made intentionally messy to motivate refactoring.
+
+type: project_specific
+base: rich-cli
+
+branch:
+  name: refactor/split-formatters
+  from: main
+
+scenario:
+  name: refactor
+  category: refactor
+  pipeline: pipelines.refactor:main
+
+  # Documentation files to stage in .ai-runner/scenario/
+  docs:
+    - instructions.md
+
+  # Patches to apply (adds messy code to refactor)
+  patches:
+    - 001-add-messy-formatting.patch
+
+  success_criteria:
+    - "Formatter logic extracted to separate module"
+    - "No new dependencies"
+    - "100% backwards compatibility"
+    - "All existing tests pass"

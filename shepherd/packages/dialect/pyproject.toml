@@ -1,0 +1,62 @@
+[project]
+name = "shepherd-dialect"
+version = "0.1.0a1"
+description = "The Shepherd dialect over vcs-core's execution-mechanism SPI: the run driver."
+requires-python = ">=3.11"
+dependencies = [
+    "shepherd-kernel-v3-reference",
+    "shepherd-runtime",
+    "vcs-core",
+    # D1 (B4b slice 1, ratified 2026-06-10): the harvested identity library.
+    # Only the kernel ring is imported (runtime-free by the retention-facade
+    # guarantee); the dialect import-boundary test enforces it.
+    "shepherd2",
+    # The `shepherd` sugar CLI (B4b slice 3 W3).
+    "click>=8.0",
+]
+
+# The CLI driver-plugin config (B4b slice 3 W3): vcs-core's plugin discovery
+# finds the run driver so a repo can bind it by name at the process level.
+[project.entry-points."vcscore.substrate_plugins"]
+"shepherd.run_driver" = "shepherd_dialect.plugin:RUN_DRIVER_PLUGIN"
+"shepherd.task_ledger" = "shepherd_dialect.plugin:TASK_LEDGER_PLUGIN"
+"shepherd.task_artifacts" = "shepherd_dialect.plugin:TASK_ARTIFACT_PLUGIN"
+"shepherd.run_ledger" = "shepherd_dialect.plugin:RUN_LEDGER_PLUGIN"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.6.0",
+]
+lint = [
+    "ruff>=0.13.0",
+]
+
+[tool.uv.sources]
+shepherd-kernel-v3-reference = { workspace = true }
+shepherd-runtime = { workspace = true }
+vcs-core = { workspace = true }
+shepherd2 = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_dialect"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["-q", "-m", "not container"]
+markers = [
+    "container: needs Linux kernel features (Landlock, fuse-overlayfs); run via `make test_container` in vcs-core/packages/core",
+    "workspace_component: fast workspace-control unit/component tests with no real retained-run workspace",
+    "workspace_smoke: minimal real workspace-control canaries for the local fast lane",
+    "workspace_native_jail: workspace-control tests that require a proven native syscall jail",
+    "slow: expensive/workspace-control scenario tests excluded from fast local dialect checks",
+    "workspace_scenario: full workspace-control scenario/integration tests excluded from fast local dialect checks",
+]
+
+[tool.ruff]
+extend = "../../../ruff.toml"

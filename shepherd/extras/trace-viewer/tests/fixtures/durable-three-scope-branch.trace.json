@@ -1,0 +1,99 @@
+{
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "scope:parent",
+  "frontier_id": "frontier:three-scope-branch",
+  "run_ref": "run-three-scope-branch",
+  "identity_domain": "shepherd.trace.fixture.v1",
+  "events": [
+    {
+      "id": "parent-1",
+      "kind": "task_started",
+      "body": {
+        "name": "Handle parent task"
+      }
+    },
+    {
+      "id": "parent-2",
+      "kind": "subtasks_created",
+      "body": {
+        "name": "Branch into three subtasks"
+      }
+    },
+    {
+      "id": "child-a-1",
+      "kind": "subtask_started",
+      "body": {
+        "name": "Prepare candidate A"
+      }
+    },
+    {
+      "id": "child-a-2",
+      "kind": "subtask_completed",
+      "body": {
+        "name": "Candidate A ready"
+      }
+    },
+    {
+      "id": "child-b-1",
+      "kind": "subtask_started",
+      "body": {
+        "name": "Prepare candidate B"
+      }
+    },
+    {
+      "id": "child-b-2",
+      "kind": "subtask_completed",
+      "body": {
+        "name": "Candidate B ready"
+      }
+    },
+    {
+      "id": "child-c-1",
+      "kind": "subtask_started",
+      "body": {
+        "name": "Prepare candidate C"
+      }
+    },
+    {
+      "id": "child-c-2",
+      "kind": "subtask_completed",
+      "body": {
+        "name": "Candidate C ready"
+      }
+    },
+    {
+      "id": "parent-3",
+      "kind": "candidate_selected",
+      "body": {
+        "name": "Select one subtask result"
+      }
+    },
+    {
+      "id": "parent-4",
+      "kind": "task_completed",
+      "body": {
+        "name": "Parent task complete"
+      }
+    }
+  ],
+  "causal_edges": [
+    ["parent-1", "parent-2"],
+    ["parent-2", "child-a-1"],
+    ["child-a-1", "child-a-2"],
+    ["parent-2", "child-b-1"],
+    ["child-b-1", "child-b-2"],
+    ["parent-2", "child-c-1"],
+    ["child-c-1", "child-c-2"],
+    ["child-a-2", "parent-3"],
+    ["child-b-2", "parent-3"],
+    ["child-c-2", "parent-3"],
+    ["parent-3", "parent-4"]
+  ],
+  "owner_paths": {
+    "scope:parent": ["parent-1", "parent-2", "parent-3", "parent-4"],
+    "scope:child-a": ["child-a-1", "child-a-2"],
+    "scope:child-b": ["child-b-1", "child-b-2"],
+    "scope:child-c": ["child-c-1", "child-c-2"]
+  },
+  "terminal_status": "completed"
+}

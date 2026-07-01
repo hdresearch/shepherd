@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shepherd.trace-view.v3",
+  "title": "Shepherd trace-view v3",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source",
+    "run",
+    "lanes",
+    "nodes",
+    "edges",
+    "resources"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "shepherd.trace-view.v3"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "trace_runtime",
+        "trace_owner_id",
+        "frontier_id",
+        "source_kind",
+        "visibility_profile",
+        "mode_filter"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "trace_runtime": {
+          "type": "string"
+        },
+        "trace_owner_id": {
+          "type": "string"
+        },
+        "frontier_id": {
+          "type": "string"
+        },
+        "source_kind": {
+          "enum": [
+            "hybrid_revision",
+            "trace_store_slice"
+          ]
+        },
+        "visibility_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mode_filter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "identity_domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "required": [
+        "id",
+        "terminal_status",
+        "transition",
+        "summary",
+        "detail"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "terminal_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "transition": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "summary": {
+          "type": "object"
+        },
+        "detail": {
+          "type": "object"
+        }
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "node_ids"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "node_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "family",
+          "role",
+          "lane_ids",
+          "sequence",
+          "timestamp",
+          "label",
+          "identity_domain",
+          "record_digest",
+          "body",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "record",
+              "record_shape",
+              "pointer",
+              "external_anchor",
+              "context",
+              "context_anchor",
+              "witness",
+              "witness_anchor"
+            ]
+          },
+          "lane_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sequence": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "timestamp": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "identity_domain": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "record_digest": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "body": {
+            "type": "object"
+          },
+          "payload": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "source",
+          "target",
+          "label"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "owner_path",
+              "causal",
+              "external_causal_anchor",
+              "context",
+              "witness",
+              "replay_control",
+              "replay_basis"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "detail"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

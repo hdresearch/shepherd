@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-sandboxes"
+version = "0.1.0a1"
+description = "Optional remote sandbox integrations for Shepherd"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_sandboxes"]
+
+[tool.mypy]
+strict = true

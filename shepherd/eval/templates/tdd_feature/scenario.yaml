@@ -1,0 +1,27 @@
+# Template: TDD Feature Implementation
+# -------------------------------------
+# A generic template for implementing features using Test-Driven Development.
+# This template can be applied to any project.
+
+type: template
+
+scenario:
+  name: tdd_feature
+  category: implement_feature
+  pipeline: pipelines.implement_change:main
+
+  # Documentation files to stage (placeholders will be filled)
+  docs:
+    - design-template.md
+
+  # Placeholders that must be provided when applying this template
+  placeholders:
+    feature_name: "Name of the feature to implement"
+    feature_description: "Brief description of the functionality"
+    acceptance_criteria: "List of acceptance criteria (one per line)"
+
+  success_criteria:
+    - "Feature implemented according to design"
+    - "Tests written first (TDD approach)"
+    - "All tests passing"
+    - "Code follows project conventions"

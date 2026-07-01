@@ -1,0 +1,116 @@
+"""Shared facade introspection for the prototype generators (DESIGN §5.3).
+
+Reads the REAL repo facade statically — ast for the export/import map (never
+imports product code; the repo-root exec shim makes imports unsafe), griffe
+static loading for kinds/signatures/docstrings. Read-only on the main repo.
+
+Retarget knobs (DESIGN S7): flip FACADE_IMPORT/FACADE_INIT/SEARCH_PATHS when
+the `shepherd` package lands.
+"""
+
+from __future__ import annotations
+
+import ast
+import hashlib
+from pathlib import Path
+
+PROTO_ROOT = Path(__file__).resolve().parents[3] # repo root: docs_system/scripts/ ->.. ->.. -> repo root
+REPO_ROOT = PROTO_ROOT # trees (docs/shepherd, docs/_src/shepherd, _generated) + shepherd/ all live at the repo root
+
+FACADE_IMPORT = "shepherd"
+FACADE_INIT = REPO_ROOT / "shepherd/packages/meta/src/shepherd/__init__.py"
+SEARCH_PATHS = [
+    REPO_ROOT / "shepherd/packages/meta/src",
+    REPO_ROOT / "shepherd/packages/runtime/src",
+    REPO_ROOT / "shepherd/packages/core/src",
+]
+
+API_DIR = PROTO_ROOT / "docs/shepherd/reference/api"
+MAP_FILE = API_DIR / "_map.yml"
+SNAPSHOT = PROTO_ROOT / "docs/_generated/shepherd/python-api/public-symbols.json"
+
+
+def facade_map() -> tuple[list[str], dict[str, str]]:
+    """(exports, {name: one-hop 'module.name' target}) — parsed with ast."""
+    tree = ast.parse(FACADE_INIT.read_text(encoding="utf-8"))
+    exports: list[str] = []
+    source: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            for alias in node.names:
+                source[alias.asname or alias.name] = f"{node.module}.{alias.name}"
+        elif isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "__all__" for t in node.targets
+        ):
+            exports = [e.value for e in getattr(node.value, "elts", []) if isinstance(e, ast.Constant)]
+    return [e for e in exports if not e.startswith("__")], source
+
+
+def _fmt_sig(obj) -> str:
+    kind = obj.kind.value
+    if kind == "function":
+        parts = []
+        for p in obj.parameters:
+            s = p.name
+            if p.annotation is not None:
+                s += f": {p.annotation}"
+            if p.default is not None:
+                s += f" = {p.default}"
+            parts.append(s)
+        ret = f" -> {obj.returns}" if obj.returns is not None else ""
+        return f"{obj.name}({', '.join(parts)}){ret}"
+    if kind == "class":
+        bases = ", ".join(str(b) for b in obj.bases)
+        return f"class {obj.name}({bases})" if bases else f"class {obj.name}"
+    ann = f": {obj.annotation}" if getattr(obj, "annotation", None) is not None else ""
+    return f"{obj.name}{ann}"
+
+
+def symbol_info() -> list[dict]:
+    """Per-symbol {name, source, kind, signature, doc_hash}, griffe-static."""
+    import griffe
+
+    exports, source = facade_map()
+    roots: dict[str, object] = {}
+
+    def load_root(pkg: str):
+        if pkg not in roots:
+            roots[pkg] = griffe.load(
+                pkg, search_paths=[str(p) for p in SEARCH_PATHS], allow_inspection=False
+            )
+        return roots[pkg]
+
+    out = []
+    for name in exports:
+        target = source.get(name, f"{FACADE_IMPORT}.{name}")
+        pkg, _, inner = target.partition(".")
+        info = {"name": name, "source": target, "target": target, "kind": "unresolved", "signature": "", "doc_hash": ""}
+        try:
+            obj = load_root(pkg)[inner]
+            if obj.is_alias:
+                obj = obj.final_target
+            # Disambiguate module/function name shadowing (e.g. nucleus.workspace
+            # is a submodule AND re-exports its same-named function): descend.
+            if obj.kind.value == "module" and name in obj.members:
+                obj = obj[name]
+                if obj.is_alias:
+                    obj = obj.final_target
+                info["target"] = obj.canonical_path
+            doc = obj.docstring.value if obj.docstring else ""
+            info.update(
+                kind=obj.kind.value,
+                signature=_fmt_sig(obj),
+                doc_hash=hashlib.sha256(doc.encode("utf-8")).hexdigest()[:16],
+            )
+        except Exception as exc: # keep generation total; surface in the page/snapshot
+            info["signature"] = f"<unresolved: {type(exc).__name__}>"
+        out.append(info)
+    return out
+
+
+def page_filename(name: str, all_names: list[str]) -> str:
+    """NTFS-safe: case-insensitive collisions suffix the capitalized one."""
+    twins = [n for n in all_names if n.lower() == name.lower()]
+    if len(twins) > 1 and name[:1].isupper():
+        return f"{name}-class.md"
+    return f"{name}.md"

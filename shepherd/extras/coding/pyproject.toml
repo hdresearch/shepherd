@@ -1,0 +1,81 @@
+[project]
+name = "shepherd-coding"
+version = "0.1.0a1"
+description = "Coding domain package for the Shepherd framework - GitHub integration and code review tasks"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [{ name = "Shepherd Team" }]
+keywords = ["ai", "agents", "coding", "github", "code-review", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+
+dependencies = [
+    "shepherd-core>=2.0.0a1,<3.0.0",
+    "shepherd-runtime>=0.1.0a1,<1.0.0",
+]
+
+[project.optional-dependencies]
+github = ["PyGithub>=2.0"]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.uv.sources]
+shepherd-core = { workspace = true }
+shepherd-runtime = { workspace = true }
+
+[project.entry-points."shepherd.domains"]
+coding = "shepherd_coding:CodingDomain"
+
+[project.entry-points."shepherd.contexts"]
+github = "shepherd_coding.contexts:GitHubContext"
+
+[project.entry-points."shepherd.effects"]
+github = "shepherd_coding.contexts.effects"
+
+[project.entry-points."shepherd.packages"]
+coding = "shepherd_coding"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_coding"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests requiring external resources or network",
+]
+
+# Ruff: see ruff.toml at workspace root.
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true

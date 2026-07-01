@@ -1,0 +1,37 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "02_dynamic_handler_install",
+  "kind": "negative-profile-admission",
+  "description": "DynamicHandlerInstall (Python closures) is not admitted by -lite; use StaticHandlerInstall.",
+  "covers": ["DynamicHandlerInstall", "Handle"],
+  "input": {
+    "program": {
+      "node": "Handle",
+      "body": {
+        "node": "Let",
+        "name": "y",
+        "bound": {"node": "Perform", "effect_kind": "ask", "payload": {"node": "Lit", "value": null}},
+        "body": {"node": "Return", "expr": {"node": "Var", "name": "y"}}
+      },
+      "handler_env": {
+        "bindings": [
+          {
+            "node": "DynamicHandlerInstall",
+            "effect_kind": "ask",
+            "handler_id": "ask.v1",
+            "handled_result_schema": {"node": "IntSchema"}
+          }
+        ]
+      }
+    },
+    "observations": []
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "profile-admission",
+      "construct": "DynamicHandlerInstall",
+      "message_substring": "DynamicHandlerInstall"
+    }
+  }
+}

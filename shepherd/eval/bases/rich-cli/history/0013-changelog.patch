@@ -1,0 +1,40 @@
+From 35ed152f2d8292a7adfde3f9826fceefe32b44f5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fredrik=20Mellstr=C3=B6m?=
+ <11281108+harkabeeparolus@users.noreply.github.com>
+Date: Fri, 4 Jul 2025 09:55:16 +0200
+Subject: [PATCH 13/14] changelog
+
+---
+ CHANGELOG.md | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 1b15e17..ab90849 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -7,9 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
+ 
+ ## [Unreleased]
+ 
++- Nothing yet
++
++## [1.8.1] - 2025-07-04
++
++### Fixed
++
++- "UserWarning: The parameter -j is used more than once" in https://github.com/Textualize/rich-cli/pull/74
++- Fixed generic blend text in https://github.com/Textualize/rich-cli/pull/51
++
+ ### Changed
+ 
+ - Rich-CLI now assumes that the input file is encoded in UTF-8 https://github.com/Textualize/rich-cli/pull/56
++- The JSON display mode is now `-J/--json`
++- _Python >= 3.9_ is now required, so no more support for 3.7 and 3.8
++- Hard-code UTF-8 encoding for the input file in https://github.com/Textualize/rich-cli/pull/56
++- Updated pyproject.toml to PEP621 and Poetry 2.* in https://github.com/Textualize/rich-cli/pull/103
+ 
+ ## [1.8.0] - 2022-05-07
+ 
+-- 
+2.50.1 (Apple Git-155)
+

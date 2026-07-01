@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-contexts"
+version = "1.0.0a1"
+description = "Generic execution contexts for Shepherd"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "shepherd-core>=2.0.0a1",
+    "shepherd-runtime>=0.1.0a1,<1.0.0",
+]
+
+[project.optional-dependencies]
+workspace = ["gitpython>=3.1.0"]
+simple_workspace = ["diff-match-patch>=20200713,<20250000"]
+database = ["sqlalchemy>=2.0.0"]
+all = [
+    "shepherd-contexts[workspace]",
+    "shepherd-contexts[simple_workspace]",
+    "shepherd-contexts[database]",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+]
+
+[project.entry-points."shepherd.contexts"]
+workspace = "shepherd_contexts.workspace:WorkspaceRef"
+simple_workspace = "shepherd_contexts.simple_workspace:SimpleWorkspace"
+session = "shepherd_contexts.session:SessionState"
+mcp = "shepherd_contexts.mcp:MCPServerContext"
+database = "shepherd_contexts.database:DatabaseContext"
+kvstore = "shepherd_contexts.kvstore:KVStoreContext"
+appstore = "shepherd_contexts.appstore:AppStoreContext"
+
+[project.entry-points."shepherd.effects"]
+workspace = "shepherd_contexts.workspace.effects"
+session = "shepherd_contexts.session.effects"
+simple_workspace = "shepherd_contexts.simple_workspace.effects"
+kvstore = "shepherd_contexts.kvstore.effects"
+mcp = "shepherd_contexts.mcp.effects"
+appstore = "shepherd_contexts.appstore.effects"
+database = "shepherd_contexts.database.effects"
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.uv.sources]
+shepherd-core = { workspace = true }
+shepherd-runtime = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_contexts"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --durations=5 -vv"
+# Markers are defined in the root pyproject.toml
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+enable_error_code = "deprecated"
+warn_unreachable = true
+
+# Ruff: see ruff.toml at workspace root.

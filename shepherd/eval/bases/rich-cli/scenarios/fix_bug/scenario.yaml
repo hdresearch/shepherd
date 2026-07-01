@@ -1,0 +1,28 @@
+# Scenario: Fix Unicode Encoding Bug
+# -----------------------------------
+# Fix unicode encoding when writing to output file.
+
+type: project_specific
+base: rich-cli
+
+branch:
+  name: bugfix/unicode-handling
+  from: main
+
+scenario:
+  name: fix_bug
+  category: fix_bug
+  pipeline: pipelines.implement_change:main
+
+  # Documentation files to stage in .ai-runner/scenario/
+  docs:
+    - description.md
+
+  # Patches to apply (adds failing test + buggy code)
+  patches:
+    - 001-add-failing-unicode-test.patch
+
+  success_criteria:
+    - "Bug fixed (encoding parameter added)"
+    - "Failing tests now pass"
+    - "No regressions"

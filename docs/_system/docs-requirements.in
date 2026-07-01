@@ -1,0 +1,17 @@
+# Loose dependency set for the Shepherd docs pipeline (the input to the lock).
+#
+# This is the human-edited list. To re-pin after editing it, run from this
+# folder (only `uv` required on PATH):
+#
+#   PYTHONUTF8=1 uv pip compile --no-build docs-requirements.in -o docs-requirements.txt
+#
+# (add --upgrade to bump within these constraints; add --generate-hashes for
+# hash-locked installs — see docs-requirements.txt header). Every entry point
+# and the CI job install from the compiled docs-requirements.txt, never from
+# this file directly, so builds are reproducible (FINDINGS: deps floated latest).
+mkdocs-material
+mkdocstrings[python]
+pathspec
+pyyaml
+pytest
+ruff

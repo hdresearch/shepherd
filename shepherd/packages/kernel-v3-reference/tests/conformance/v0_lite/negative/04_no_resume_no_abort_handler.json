@@ -1,0 +1,34 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "04_no_resume_no_abort_handler",
+  "kind": "negative-profile-admission",
+  "description": "Handler body with neither Resume nor Abort (Core-0 baseline body) is not admitted by -lite; use Resume-shape or Abort-shape.",
+  "covers": ["StaticHandlerInstall", "Handle", "Return"],
+  "input": {
+    "program": {
+      "node": "Handle",
+      "body": {"node": "Perform", "effect_kind": "ask", "payload": {"node": "Lit", "value": null}},
+      "handler_env": {
+        "bindings": [
+          {
+            "node": "StaticHandlerInstall",
+            "effect_kind": "ask",
+            "handler_id": "ask.v1",
+            "handled_result_schema": {"node": "NullSchema"},
+            "payload_name": "_p",
+            "body": {"node": "Return", "expr": {"node": "Lit", "value": null}}
+          }
+        ]
+      }
+    },
+    "observations": []
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "profile-admission",
+      "construct": "no-resume-no-abort handler body",
+      "message_substring": "neither Resume nor Abort"
+    }
+  }
+}

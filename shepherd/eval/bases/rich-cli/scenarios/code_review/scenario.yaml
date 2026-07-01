@@ -1,0 +1,31 @@
+# Scenario: Code Review - Add Quiet Mode
+# ---------------------------------------
+# Review a PR that adds --quiet flag to suppress output.
+# The changes have intentional issues for the reviewer to find.
+
+type: project_specific
+base: rich-cli
+
+branch:
+  name: review/add-quiet-mode
+  from: main
+
+scenario:
+  name: code_review
+  category: code_review
+  pipeline: pipelines.code_review:main
+
+  # Documentation files to stage in .ai-runner/scenario/
+  docs:
+    - expected_issues.md
+
+  # Patches to apply (adds PR with intentional issues)
+  patches:
+    - 001-add-quiet-mode.patch
+
+  success_criteria:
+    - "Missing tests identified"
+    - "Incomplete docstring flagged"
+    - "Hardcoded exit code noted"
+    - "Mutable default args found"
+    - "README not updated mentioned"

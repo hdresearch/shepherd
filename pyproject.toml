@@ -1,0 +1,108 @@
+[project]
+name = "shepherd-workspace"
+version = "0.1.0"
+description = "Shepherd framework workspace"
+requires-python = ">=3.11"
+dependencies = [
+    "shepherd",
+    "shepherd-export",
+    "shepherd-runtime",
+    "shepherd-transform",
+    "shepherd-sandboxes",
+    "shepherd-core",
+    "shepherd-providers",
+    "shepherd-contexts",
+    "shepherd-authoring",
+    "shepherd-banking",
+    "shepherd-coding",
+    "shepherd-tests",
+    "shepherd-kernel-v3-reference",
+    "vcs-core",
+    "commons-vcs",
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.6.0",
+    "pytest-asyncio>=0.23.0",
+    "pyyaml>=6.0", # Required for eval scenario generation
+    "hypothesis>=6.100.0", # Property-based testing
+    "ruff>=0.15.0,<1.0.0", # Ensure `uv run ruff` resolves to the locked workspace tool, not PATH.
+    "RestrictedPython>=7.0,<8.0", # Required for secure task reconstruction tests
+    "filelock>=3.0", # Required for persistence tests
+]
+
+[dependency-groups]
+# Tooling for running the launch use-case notebooks. Kept out of core runtime
+# dependencies so a plain framework install does not pull in JupyterLab.
+notebook = [
+    "jupyterlab>=4",
+    "ipykernel>=6",
+    "shepherd-trace-viewer",
+]
+
+[tool.uv.workspace]
+members = [
+    "shepherd/packages/*",
+    "shepherd/extras/*",
+    "shepherd2",
+    "vcs-core/packages/*",
+    "vcs-core/extras/*",
+    "commons-vcs",
+]
+
+[tool.uv.sources]
+shepherd = { workspace = true }
+shepherd-export = { workspace = true }
+shepherd-runtime = { workspace = true }
+shepherd-transform = { workspace = true }
+shepherd-sandboxes = { workspace = true }
+shepherd-core = { workspace = true }
+shepherd-providers = { workspace = true }
+shepherd-contexts = { workspace = true }
+shepherd-authoring = { workspace = true }
+shepherd-banking = { workspace = true }
+shepherd-coding = { workspace = true }
+shepherd-tests = { workspace = true }
+shepherd-kernel-v3-reference = { workspace = true }
+shepherd-dialect = { workspace = true }
+shepherd-trace-viewer = { workspace = true }
+vcs-core = { workspace = true }
+commons-vcs = { workspace = true }
+
+# Shared tool configuration
+# Ruff: see ruff.toml at workspace root.
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+exclude = [
+    # Kernel-v3 spikes are exploratory notes/prototypes, not production package code.
+    "^shepherd/packages/kernel-v3-reference/src/shepherd_kernel_v3_reference/spikes/",
+    "^src/shepherd_kernel_v3_reference/spikes/",
+]
+
+[[tool.mypy.overrides]]
+module = "shepherd_core.export.atif"
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = "shepherd_export.atif"
+warn_unused_ignores = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "--import-mode=importlib"
+markers = [
+    "slow: marks tests as slow (>1s execution time)",
+    "slow: marks expensive/workspace-control scenario tests excluded from fast local dialect checks",
+    "workspace_scenario: marks full workspace-control scenario/integration tests excluded from fast local dialect checks",
+    "workspace_native_jail: marks workspace-control tests that require a proven native syscall jail",
+    "integration: marks tests requiring external resources or network",
+    "container: marks tests requiring Podman/container runtime",
+    "vm_overlay: marks tests requiring macOS Podman Machine with VM overlay",
+    "e2e: marks end-to-end tests that run actual containers",
+    "benchmark: marks performance benchmark tests",
+    "spike: marks exploratory/documentation tests (not regression tests)",
+    "requires: marks tests as requiring a specific library",
+]

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradient Descent</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background: #fbf7f0;
+  }
+  .tile {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="tile">
+  <svg viewBox="0 0 1200 900" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gradient Descent infographic">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#fdfaf4"/>
+        <stop offset="100%" stop-color="#f3ece0"/>
+      </linearGradient>
+      <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#a65f00" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="#a65f00" stop-opacity="0.04"/>
+      </linearGradient>
+      <!-- Warm arrow marker for the (wrong) climbing path -->
+      <marker id="warmHead" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L12,6 L0,12 L4,6 Z" fill="#c84b62"/>
+      </marker>
+    </defs>
+
+    <!-- Panel -->
+    <rect x="0" y="0" width="1200" height="900" fill="url(#bg)"/>
+    <rect x="40" y="40" width="1120" height="820" rx="28" fill="#ffffff" stroke="#e7ddcb" stroke-width="2"/>
+
+    <!-- Title -->
+    <text x="90" y="135" font-family="Georgia, 'Times New Roman', serif" font-size="62" font-weight="700" fill="#a65f00">Gradient Descent</text>
+    <rect x="92" y="158" width="300" height="7" rx="3.5" fill="#c84b62"/>
+
+    <!-- Axes -->
+    <line x1="150" y1="760" x2="1080" y2="760" stroke="#cdbfa8" stroke-width="4" stroke-linecap="round"/>
+    <line x1="150" y1="250" x2="150" y2="760" stroke="#cdbfa8" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- Loss bowl curve -->
+    <path d="M 190 300
+             Q 340 360 480 560
+             Q 600 720 615 740
+             Q 630 720 750 560
+             Q 890 360 1040 300"
+          fill="none" stroke="#a65f00" stroke-width="9" stroke-linecap="round"/>
+    <path d="M 190 300
+             Q 340 360 480 560
+             Q 600 720 615 740
+             Q 630 720 750 560
+             Q 890 360 1040 300
+             L 1040 760 L 190 760 Z"
+          fill="url(#bowl)" stroke="none"/>
+
+    <!-- Minimum point -->
+    <circle cx="615" cy="742" r="15" fill="#a65f00"/>
+    <circle cx="615" cy="742" r="26" fill="none" stroke="#a65f00" stroke-width="3" stroke-opacity="0.45"/>
+    <text x="615" y="800" text-anchor="middle" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#a65f00">Minimum</text>
+
+    <!-- WRONG-DIRECTION path: thick warm arrows climbing UP and AWAY from the minimum -->
+    <g stroke="#c84b62" stroke-width="16" fill="none" stroke-linecap="round" marker-end="url(#warmHead)">
+      <line x1="585" y1="700" x2="500" y2="585"/>
+      <line x1="500" y1="585" x2="415" y2="470"/>
+      <line x1="415" y1="470" x2="320" y2="375"/>
+      <line x1="320" y1="375" x2="225" y2="300"/>
+    </g>
+
+    <!-- Start label near the highlighted low point -->
+    <circle cx="585" cy="700" r="11" fill="#c84b62"/>
+    <text x="660" y="708" text-anchor="start" font-family="Georgia, serif" font-size="34" font-weight="700" fill="#c84b62">Start</text>
+
+    <!-- Step label along the climbing arrows -->
+    <text x="455" y="535" text-anchor="middle" font-family="Georgia, serif" font-size="32" font-weight="700" fill="#c84b62" transform="rotate(-52 455 535)">Step</text>
+
+    <!-- Caption -->
+    <text x="600" y="855" text-anchor="middle" font-family="Georgia, serif" font-size="33" font-style="italic" fill="#6b5b45">Small downhill steps reduce error.</text>
+  </svg>
+</div>
+</body>
+</html>

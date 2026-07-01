@@ -1,0 +1,47 @@
+From 2c4c9b537f288ddef7acc56ccec87adbc63afd67 Mon Sep 17 00:00:00 2001
+From: Derek Chong <dc@derekchong.com>
+Date: Mon, 22 Dec 2025 12:13:42 -0800
+Subject: [PATCH] Add --quiet flag to suppress output
+
+Adds a new --quiet flag that suppresses normal output.
+This is useful for scripting and automation.
+
+NOTE: This patch has intentional issues for code review training:
+- Missing tests for the new flag
+- Incomplete docstring (not updated)
+- Hardcoded exit code (42 instead of 0)
+- Mutable default argument (_extra_options: list = [])
+---
+ src/rich_cli/__main__.py | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 98df6bb..50ffe0b 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -396,6 +396,7 @@ class RichCommand(click.Command):
+     "--export-svg", metavar="PATH", default="", help="Write SVG to [b]PATH[/b]."
+ )
+ @click.option("--pager", is_flag=True, help="Display in an interactive pager.")
++@click.option("--quiet", "-q", is_flag=True, help="Suppress output.")
+ @click.option("--version", "-v", is_flag=True, help="Print version and exit.")
+ def main(
+     resource: str,
+@@ -441,8 +442,14 @@ def main(
+     export_html: str = "",
+     export_svg: str = "",
+     pager: bool = False,
++    quiet: bool = False,
++    _extra_options: list = [],  # Mutable default argument - intentional bug for code review
+ ):
+     """Rich toolbox for console output."""
++    # Handle quiet mode - suppress all output
++    if quiet:
++        # Hardcoded exit code - intentional issue for code review
++        sys.exit(42)
+     if version:
+         sys.stdout.write(f"{VERSION}\n")
+         return
+-- 
+2.50.1 (Apple Git-155)
+

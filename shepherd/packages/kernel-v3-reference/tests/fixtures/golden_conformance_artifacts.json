@@ -1,0 +1,399 @@
+{
+  "schema_version": 2,
+  "artifacts": [
+    {
+      "name": "sequential-handled-effect-runtime-with-continuations",
+      "artifact": {
+        "artifact_schema_version": "shepherd_kernel_v3_reference.conformance-artifact.v2",
+        "artifact_kind": "shepherd-kernel-v3-conformance",
+        "validation_profile": "runtime-with-continuations",
+        "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+        "program_profile": null,
+        "trace": [
+          {
+            "record_type": "EffectDeclaration",
+            "ref": "declaration:0",
+            "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+            "effect_kind": "eff.a",
+            "payload": {
+              "i": 0
+            },
+            "full_continuation_ref": "continuation:runtime:5",
+            "branch_ref": "branch:root",
+            "payload_schema_ref": null,
+            "operation_result_schema_ref": null,
+            "execution_context_ref": "ctx:runtime:6"
+          },
+          {
+            "record_type": "HandlerSelection",
+            "ref": "selection:1",
+            "declaration_ref": "declaration:0",
+            "selected_binding_ref": "install:3",
+            "handler_id": "conformance-artifact-test.handler.v1",
+            "handler_frame_ref": "handler-env:2",
+            "captured_continuation_ref": "continuation:runtime:8",
+            "outer_continuation_ref": "continuation:runtime:10",
+            "captured_continuation_control_ref": "continuation-control:runtime:9",
+            "outer_continuation_control_ref": "continuation-control:runtime:11",
+            "handled_result_schema_ref": "schema:handled-result:conformance-artifact-test.handler.v1",
+            "worker_context_ref": "ctx:runtime:6",
+            "handler_context_ref": "ctx:runtime:13",
+            "outer_context_ref": "ctx:runtime:6"
+          },
+          {
+            "record_type": "ResumptionHandle",
+            "ref": "resumption:2",
+            "declaration_ref": "declaration:0",
+            "selection_ref": "selection:1",
+            "continuation_ref": "continuation:runtime:8",
+            "operation_result_schema_ref": null,
+            "handled_result_schema_ref": "schema:handled-result:conformance-artifact-test.handler.v1"
+          },
+          {
+            "record_type": "ContinuationResume",
+            "ref": "resume:3",
+            "source_ref": "resumption:2",
+            "source_record_type": "ResumptionHandle",
+            "declaration_ref": "declaration:0",
+            "selection_ref": "selection:1",
+            "selection_path_ref": "path:selection:1/resumption:2/branch:root",
+            "continuation_ref": "continuation:runtime:8",
+            "handler_continuation_ref": "continuation:runtime:19",
+            "handler_dynamic_tail_ref": "continuation:runtime:20",
+            "branch_ref": "branch:root",
+            "value": "value",
+            "returns_to_handler": true,
+            "worker_context_ref": "ctx:runtime:6",
+            "handler_context_ref": "ctx:runtime:13"
+          },
+          {
+            "record_type": "ResumeReturn",
+            "ref": "resume-return:4",
+            "resume_ref": "resume:3",
+            "selection_ref": "selection:1",
+            "selection_path_ref": "path:selection:1/resumption:2/branch:root",
+            "branch_ref": "branch:root",
+            "handler_continuation_ref": "continuation:runtime:19",
+            "handler_dynamic_tail_ref": "continuation:runtime:20",
+            "value": "value",
+            "handler_context_ref": "ctx:runtime:13"
+          },
+          {
+            "record_type": "EffectCapture",
+            "ref": "capture:5",
+            "selection_ref": "selection:1",
+            "selection_path_ref": "path:selection:1/resumption:2/branch:root",
+            "branch_ref": "branch:root",
+            "action_kind": "return",
+            "action_payload": "value",
+            "continuation_disposition": "completed",
+            "outer_context_ref": "ctx:runtime:6"
+          }
+        ],
+        "continuation_root_refs": [
+          "continuation-object:sha256:313e42600f69d2928016c2df6f0d387bb8351a6e35dd15f49467cca0577a6293",
+          "continuation-object:sha256:32057137102a58c7c85fb251fd9c4b25c6525bab71b6b934d0d5b50a28ff45e7",
+          "continuation-object:sha256:45a27d3e7a29796fc2aa12e84b36393a63f70b3cf4d2021aefaba17c2328025b",
+          "continuation-object:sha256:940a54261dedf83289b796717253035a5f81ee87ced0f07f38c568a8edd965bd",
+          "continuation-object:sha256:98b94d16ab939d092a2d6ef753ddff38fa0ad6e6eb0266d16e60af24ad02394b"
+        ],
+        "continuation_ref_map": {
+          "continuation:runtime:5": "continuation-object:sha256:98b94d16ab939d092a2d6ef753ddff38fa0ad6e6eb0266d16e60af24ad02394b",
+          "continuation:runtime:8": "continuation-object:sha256:45a27d3e7a29796fc2aa12e84b36393a63f70b3cf4d2021aefaba17c2328025b",
+          "continuation:runtime:10": "continuation-object:sha256:940a54261dedf83289b796717253035a5f81ee87ced0f07f38c568a8edd965bd",
+          "continuation:runtime:19": "continuation-object:sha256:313e42600f69d2928016c2df6f0d387bb8351a6e35dd15f49467cca0577a6293",
+          "continuation:runtime:20": "continuation-object:sha256:32057137102a58c7c85fb251fd9c4b25c6525bab71b6b934d0d5b50a28ff45e7"
+        },
+        "continuation_control_ref_map": {
+          "continuation-control:runtime:9": "continuation-control:sha256:35cb634c232bb06ba2a0caabcdc9234a3c8851f9f235a69b58d79642822904f7",
+          "continuation-control:runtime:11": "continuation-control:sha256:eb10706da25d720f7a372c2f608fd3dfe94817b1e42a1dedc4efff34189e3f2a"
+        },
+        "context_ref_map": {
+          "ctx:runtime:6": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+          "ctx:runtime:13": "ctx:sha256:5885694025b92e8554774a4edca67dec8077ae96fb10215a61f346364d49ed6f"
+        },
+        "continuation_objects": [
+          {
+            "ref": "continuation-object:sha256:26a299eac1be3b86f9d3655e42d758ffa26873ca8b0328100a91b189d2a7ca73",
+            "object": {
+              "head_frame_ref": "continuation-object:sha256:bfcba21de7ffc72ea0200b3e1eef92ba6573efc76cc973efa503dd1ff344bd21",
+              "tail_stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+              "summary": {
+                "depth": 1,
+                "required_schema_refs": [],
+                "code_identity_refs": []
+              },
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "stack-node"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:313e42600f69d2928016c2df6f0d387bb8351a6e35dd15f49467cca0577a6293",
+            "object": {
+              "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+              "branch_ref": "branch:root",
+              "branch_scope_ref": null,
+              "position": "value",
+              "continuation_kind": "handler-continuation",
+              "execution_context_ref": "ctx:sha256:5885694025b92e8554774a4edca67dec8077ae96fb10215a61f346364d49ed6f",
+              "execution_context": {
+                "binding_env_ref": "continuation-object:sha256:784e9435440be2a9438f7d2797f6dffc280cd932ff1b24ece1fa7564630af9b6",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "result_schema_ref": null,
+              "stack_ref": "continuation-object:sha256:26a299eac1be3b86f9d3655e42d758ffa26873ca8b0328100a91b189d2a7ca73",
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "root"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:32057137102a58c7c85fb251fd9c4b25c6525bab71b6b934d0d5b50a28ff45e7",
+            "object": {
+              "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+              "branch_ref": "branch:root",
+              "branch_scope_ref": null,
+              "position": "value",
+              "continuation_kind": "handler-dynamic-tail",
+              "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+              "execution_context": {
+                "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "result_schema_ref": "schema:handled-result:conformance-artifact-test.handler.v1",
+              "stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "root"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:45a27d3e7a29796fc2aa12e84b36393a63f70b3cf4d2021aefaba17c2328025b",
+            "object": {
+              "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+              "branch_ref": "branch:root",
+              "branch_scope_ref": null,
+              "position": "value",
+              "continuation_kind": "captured-worker",
+              "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+              "execution_context": {
+                "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "result_schema_ref": null,
+              "stack_ref": "continuation-object:sha256:d8259e71a553f3cfa44f2827019f45a7de48f5e8afa4cd0844862d15cacd53aa",
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "root"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:495bbd01684d42aaef31d06edc476b59ce29848f52eb3fab35ed489cd59a9ef7",
+            "object": {
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "frame",
+              "frame_kind": "bind",
+              "summary": {
+                "required_schema_refs": [],
+                "code_identity_refs": [
+                  "binder:sha256:6e3ec3b93857b85b6d09a3e2b532a8982c7d2db3eea004be36f192716b4a7b5c"
+                ]
+              },
+              "payload": {
+                "binder_ref": "binder:sha256:6e3ec3b93857b85b6d09a3e2b532a8982c7d2db3eea004be36f192716b4a7b5c",
+                "env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+                "context": {
+                  "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                  "region_ref": "region:root",
+                  "authority_ref": "authority:root"
+                },
+                "frame_kind": "bind"
+              }
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:784e9435440be2a9438f7d2797f6dffc280cd932ff1b24ece1fa7564630af9b6",
+            "object": {
+              "parent_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+              "name": "_payload",
+              "value": {
+                "i": 0
+              },
+              "depth": 1,
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "env-node"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:940a54261dedf83289b796717253035a5f81ee87ced0f07f38c568a8edd965bd",
+            "object": {
+              "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+              "branch_ref": "branch:root",
+              "branch_scope_ref": null,
+              "position": "value",
+              "continuation_kind": "outer",
+              "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+              "execution_context": {
+                "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "result_schema_ref": "schema:handled-result:conformance-artifact-test.handler.v1",
+              "stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "root"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:96895e29bc4ddb0801707480a8a93cc509797ed51fd101833872bb1be9178806",
+            "object": {
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "frame",
+              "frame_kind": "handler",
+              "summary": {
+                "required_schema_refs": [],
+                "code_identity_refs": [
+                  "handler-env:sha256:fe6b53b623bfcd8a2ad0363542c00dc1978ba57b383e69e3ea2654d15db53933"
+                ]
+              },
+              "payload": {
+                "handler_env_ref": "handler-env:2",
+                "handler_env_def_ref": "handler-env:sha256:fe6b53b623bfcd8a2ad0363542c00dc1978ba57b383e69e3ea2654d15db53933",
+                "region_ref": "region:root",
+                "env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "entry_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+                "entry_context": {
+                  "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                  "region_ref": "region:root",
+                  "authority_ref": "authority:root"
+                },
+                "outer_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+                "outer_context": {
+                  "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                  "region_ref": "region:root",
+                  "authority_ref": "authority:root"
+                },
+                "frame_kind": "handler"
+              }
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:98b94d16ab939d092a2d6ef753ddff38fa0ad6e6eb0266d16e60af24ad02394b",
+            "object": {
+              "program_ref": "program:sha256:36025dc221c72b587b953dd6de069d7e16b0809185ff3b76f13d711673158352",
+              "branch_ref": "branch:root",
+              "branch_scope_ref": null,
+              "position": "value",
+              "continuation_kind": "full",
+              "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+              "execution_context": {
+                "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "result_schema_ref": null,
+              "stack_ref": "continuation-object:sha256:aad478885807e07160ef4bc4c00adef6f8a8b468940e113e15aed197f447527f",
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "root"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:aad478885807e07160ef4bc4c00adef6f8a8b468940e113e15aed197f447527f",
+            "object": {
+              "head_frame_ref": "continuation-object:sha256:495bbd01684d42aaef31d06edc476b59ce29848f52eb3fab35ed489cd59a9ef7",
+              "tail_stack_ref": "continuation-object:sha256:e15b1828e1384a46f80db8da8d6ed85a9e3f61b9c0cbdebf5ab601faed4d671c",
+              "summary": {
+                "depth": 2,
+                "required_schema_refs": [],
+                "code_identity_refs": []
+              },
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "stack-node"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:bfcba21de7ffc72ea0200b3e1eef92ba6573efc76cc973efa503dd1ff344bd21",
+            "object": {
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "frame",
+              "frame_kind": "bind",
+              "summary": {
+                "required_schema_refs": [],
+                "code_identity_refs": [
+                  "binder:sha256:006235209a88b4358960f7c64156613cc0791c13b22aa49cee9ee0017e7da311"
+                ]
+              },
+              "payload": {
+                "binder_ref": "binder:sha256:006235209a88b4358960f7c64156613cc0791c13b22aa49cee9ee0017e7da311",
+                "env_ref": "continuation-object:sha256:784e9435440be2a9438f7d2797f6dffc280cd932ff1b24ece1fa7564630af9b6",
+                "context_ref": "ctx:sha256:5885694025b92e8554774a4edca67dec8077ae96fb10215a61f346364d49ed6f",
+                "context": {
+                  "binding_env_ref": "continuation-object:sha256:784e9435440be2a9438f7d2797f6dffc280cd932ff1b24ece1fa7564630af9b6",
+                  "region_ref": "region:root",
+                  "authority_ref": "authority:root"
+                },
+                "frame_kind": "bind"
+              }
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+            "object": {
+              "summary": {
+                "depth": 0,
+                "required_schema_refs": [],
+                "code_identity_refs": []
+              },
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "empty-stack"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:d8259e71a553f3cfa44f2827019f45a7de48f5e8afa4cd0844862d15cacd53aa",
+            "object": {
+              "head_frame_ref": "continuation-object:sha256:495bbd01684d42aaef31d06edc476b59ce29848f52eb3fab35ed489cd59a9ef7",
+              "tail_stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+              "summary": {
+                "depth": 1,
+                "required_schema_refs": [],
+                "code_identity_refs": []
+              },
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "stack-node"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:e15b1828e1384a46f80db8da8d6ed85a9e3f61b9c0cbdebf5ab601faed4d671c",
+            "object": {
+              "head_frame_ref": "continuation-object:sha256:96895e29bc4ddb0801707480a8a93cc509797ed51fd101833872bb1be9178806",
+              "tail_stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+              "summary": {
+                "depth": 1,
+                "required_schema_refs": [],
+                "code_identity_refs": []
+              },
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "stack-node"
+            }
+          },
+          {
+            "ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+            "object": {
+              "depth": 0,
+              "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+              "object_type": "env-empty"
+            }
+          }
+        ],
+        "source_outcome": null,
+        "schema_versions": {
+          "conformance_artifact": "shepherd_kernel_v3_reference.conformance-artifact.v2",
+          "trace_evidence_bundle": "shepherd_kernel_v3_reference.trace-evidence-bundle.v2",
+          "continuation_object": "shepherd_kernel_v3_reference.continuation-object.v5"
+        },
+        "tool_versions": {}
+      }
+    }
+  ]
+}

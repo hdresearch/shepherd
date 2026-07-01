@@ -1,0 +1,27 @@
+# Scenario: Implement CSV Export Feature
+# ---------------------------------------
+# Add CSV output format support to rich-cli.
+
+type: project_specific
+base: rich-cli
+
+branch:
+  name: feature/add-csv-export
+  from: main
+
+scenario:
+  name: implement_feature
+  category: implement_feature
+  pipeline: pipelines.implement_change:main
+
+  # Documentation files to stage in .ai-runner/scenario/
+  docs:
+    - design.md
+
+  # No patches - this is a greenfield implementation
+  patches: []
+
+  success_criteria:
+    - "CLI has --csv flag"
+    - "CSV output works for JSON arrays"
+    - "Tests added and passing"

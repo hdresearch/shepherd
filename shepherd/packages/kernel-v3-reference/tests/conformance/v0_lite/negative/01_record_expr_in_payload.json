@@ -1,0 +1,31 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "01_record_expr_in_payload",
+  "kind": "negative-profile-admission",
+  "description": "RecordExpr in a Perform payload is not admitted by -lite (records arrive in -json).",
+  "covers": ["RecordExpr", "Perform"],
+  "input": {
+    "program": {
+      "node": "Let",
+      "name": "y",
+      "bound": {
+        "node": "Perform",
+        "effect_kind": "ask",
+        "payload": {
+          "node": "RecordExpr",
+          "fields": [{"name": "k", "value": {"node": "Lit", "value": 1}}]
+        }
+      },
+      "body": {"node": "Return", "expr": {"node": "Var", "name": "y"}}
+    },
+    "observations": []
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "profile-admission",
+      "construct": "RecordExpr",
+      "message_substring": "not admitted by core-reference-v0-lite"
+    }
+  }
+}

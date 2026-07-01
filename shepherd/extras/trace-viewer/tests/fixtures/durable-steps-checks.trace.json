@@ -1,0 +1,75 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "task:pkg.mod:run:run-steps",
+  "frontier_id": "frontier:run-steps",
+  "run_ref": "run-steps",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "task-invocation",
+      "kind": "task.invocation",
+      "identity_domain": "shepherd.kernel.canonical.v2",
+      "record_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+      "body": {
+        "task_id": "pkg.mod:with_steps",
+        "args_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "may_profile": "ReadOnly"
+      }
+    },
+    {
+      "id": "step-1-start",
+      "kind": "step.started",
+      "name": "draft",
+      "timestamp": 1780000001.0
+    },
+    {
+      "id": "step-1-done",
+      "kind": "step.completed",
+      "name": "draft",
+      "timestamp": 1780000002.0
+    },
+    {
+      "id": "check-1",
+      "kind": "check.violation",
+      "check": "must mention API",
+      "field": "return",
+      "phase": "postcondition"
+    },
+    {
+      "id": "workspace-transition",
+      "kind": "substrate.transition",
+      "binding": "workspace",
+      "head_from": "ffffffffffffffffffffffffffffffffffffffff",
+      "head_to": null,
+      "semantic_op": "run",
+      "operation_id": "op-steps"
+    },
+    {
+      "id": "run-lifecycle",
+      "kind": "run.lifecycle",
+      "transition": "failed",
+      "terminal_status": "discarded",
+      "may_profile": "ReadOnly",
+      "may_source": "declared"
+    }
+  ],
+  "causal_edges": [
+    ["task-invocation", "step-1-start"],
+    ["step-1-start", "step-1-done"],
+    ["step-1-done", "check-1"],
+    ["check-1", "workspace-transition"],
+    ["workspace-transition", "run-lifecycle"]
+  ],
+  "owner_paths": {
+    "task:pkg.mod:run:run-steps": [
+      "task-invocation",
+      "step-1-start",
+      "step-1-done",
+      "check-1",
+      "workspace-transition",
+      "run-lifecycle"
+    ]
+  }
+}

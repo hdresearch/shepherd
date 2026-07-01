@@ -1,0 +1,175 @@
+# Shared ruff configuration for the entire shepherd workspace.
+# Package-level [tool.ruff] sections have been removed in favor of this file.
+#
+# Uses select = ["ALL"] with an explicit ignore list. This ensures new ruff
+# rules are surfaced automatically on upgrade rather than silently missed.
+
+line-length = 120
+target-version = "py310"
+extend-exclude = [
+    # Active package targets are wired explicitly in the root Makefile. These
+    # trees are archives, prototypes, examples, or one-off tooling and remain
+    # opt-in until promoted.
+    "shepherd/design/**",
+    "shepherd/eval/**",
+    "shepherd/examples/**",
+    "docs/design/**",
+    "docs/tools/**",
+    "vcs-core/design/**",
+    "vcs-core/scripts/**",
+    "scripts/**",
+    "**/spikes/**",
+    "tmp/**",
+]
+
+[format]
+docstring-code-format = true
+
+[lint]
+select = ["ALL"]
+ignore = [
+    # --- Disabled by design (conflicts / not applicable) ---
+    "COM812",  # Trailing comma — conflicts with ruff formatter
+    "ISC001",  # Implicit string concat — conflicts with ruff formatter
+    "E501",    # Line too long — enforced by formatter, not linter
+
+    # --- Style choices ---
+    "SIM108",  # Ternary instead of if-else — often less readable
+    "D104",    # Missing public package docstring
+    "D203",    # Blank line before class docstring — conflicts with D211
+    "D213",    # Multi-line summary on second line — conflicts with D212
+
+    # --- Complexity / structural (enforced by review, not linter) ---
+    "C90",     # McCabe complexity
+    "PLR09",   # Too many arguments/statements/branches
+
+    # --- Exception message style (too noisy, low value) ---
+    "TRY003",  # Raise vanilla args
+    "EM101",   # Raw string in exception
+    "EM102",   # f-string in exception
+
+    # --- TODO style (not enforced) ---
+    "FIX002",  # Line contains TODO — TODOs are used intentionally with design doc references
+    "TD002",   # Missing author in TODO
+    "TD003",   # Missing issue link in TODO
+
+    # --- Type annotation style ---
+    "ANN401",  # Dynamically typed Any — used intentionally in protocol code
+    "ANN001",  # Missing type for function argument — too noisy for now
+    "ANN003",  # Missing type for **kwargs
+    "ANN204",  # Missing return type for special method
+
+    # --- Boolean arguments (API-breaking to fix) ---
+    "FBT001",  # Boolean positional arg in function definition
+    "FBT002",  # Boolean default value in function definition
+    "FBT003",  # Boolean positional value in function call
+
+    # --- Import style (intentional patterns in this codebase) ---
+    "PLC0415", # Import outside top level — used for lazy/conditional imports
+    "TID252",  # Relative imports — used within packages
+    "E402",    # Module-level import not at top — used after sys.path manipulation
+
+    # --- Docstring coverage (aspirational, not enforced yet) ---
+    "D102",    # Missing docstring in public method
+    "D105",    # Missing docstring in magic method
+    "D107",    # Missing docstring in __init__
+
+    # --- Patterns used intentionally ---
+    "SLF001",  # Private member access — common in framework internals
+    # "BLE001" — was globally ignored; now each `except Exception` has an explicit `# noqa: BLE001`
+    "G004",    # Logging f-string — preferred for readability over lazy %
+    "PLW0603", # Global statement — used for module-level state
+    "S101",    # Assert — used in non-test validation code
+    "PERF203", # try-except-in-loop — unavoidable in some patterns
+    "TRY300",  # try-consider-else — style preference
+    "TRY301",  # raise-within-try — intentional pattern
+    "PGH003",  # Blanket type: ignore — used where mypy needs it
+
+    # --- Subprocess / security (framework runs subprocesses by design) ---
+    "S603",    # subprocess without shell=True — intentional
+    "S607",    # Start process with partial path — intentional
+    "S108",    # Hardcoded temp file — used in container/sandbox code
+
+    # --- Naming (framework conventions differ from PEP 8) ---
+    "N802",    # Function name should be lowercase — visit_* AST methods etc
+    "N806",    # Variable name should be lowercase — used for type vars, constants
+    "A002",    # Shadowing builtin — id, type, input used as domain terms
+
+    # --- Unused arguments (protocol/interface compliance) ---
+    "ARG001",  # Unused function argument — required by protocol signatures
+    "ARG002",  # Unused method argument — required by protocol signatures
+    "ARG003",  # Unused class method argument
+    "ARG005",  # Unused lambda argument
+
+    # --- Low-value rules for this codebase ---
+    "ERA001",  # Commented-out code — used for documentation/alternatives
+    "PLR2004", # Magic value comparison — too noisy
+    "TRY401",  # Verbose log message — style preference
+    "PERF401", # Manual list comprehension — readability preference
+    "PLW2901", # Redefined loop name — intentional pattern
+    "PTH123",  # builtin open — pathlib not always better
+    "PTH100",  # os.path.abspath — pathlib not always better
+
+    # --- Preview rules (fire on some ruff versions, not locally reproducible) ---
+    "PLW0108", # Unnecessary lambda — false positives on forward-reference lambdas in dataclass defaults
+    "ASYNC240",# pathlib in async — test code, not production async
+]
+
+[lint.pydocstyle]
+convention = "google"
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[lint.per-file-ignores]
+"shepherd/__init__.py" = [
+    "S102",    # Repo-root import shim executes the nested package entrypoint.
+]
+"vcs-core/packages/core/tests/**" = [
+    "TC001",   # Type-only import hygiene is enforced in production code; tests optimize for local clarity
+    "TC002",   # Type-only import hygiene is enforced in production code; tests optimize for local clarity
+    "TC003",   # Type-only import hygiene is enforced in production code; tests optimize for local clarity
+]
+"examples/**" = [
+    "ANN",     # Type annotations not required in examples
+    "BLE001",  # Blind except OK in example utility code
+    "T201",    # Print is the primary output mechanism in examples
+]
+"examples/tutorials/[0-9]*" = [
+    "N999",    # Numeric-prefixed filenames are intentional for ordering
+]
+"examples/agent_tutorials/[0-9]*" = [
+    "N999",    # Numeric-prefixed filenames are intentional for ordering
+]
+"integration-tests/**" = [
+    "ANN",     # Type annotations not required in integration tests
+    "N999",    # Hyphenated directory name is intentional
+]
+"**/tests/**" = [
+    "A002",    # Shadowing builtins OK in tests
+    "ANN",     # Type annotations not required in tests
+    "ARG",     # Unused arguments OK in tests (fixtures, etc.)
+    "ASYNC221",# Blocking subprocess OK in tests (not production async code)
+    "B007",    # Unused loop control variable
+    "B017",    # pytest.raises without match
+    "BLE001",  # Blind except OK in tests
+    "D",       # Docstrings not required in tests
+    "DTZ",     # Datetime timezone not required in tests
+    "E721",    # Type comparison OK in tests
+    "ERA001",  # Commented-out code OK in tests
+    "F841",    # Unused local variable
+    "INP001",  # Implicit namespace package
+    "N",       # Naming conventions relaxed in tests
+    "PERF203", # try-except-in-loop OK in tests
+    "PGH003",  # Blanket type: ignore OK in tests
+    "PLC0415", # Import outside top level
+    "PLR2004", # Magic values OK in tests
+    "PT011",   # pytest.raises too broad OK in tests
+    "PT012",   # Multi-statement pytest.raises OK in tests (exception-cleanup tests)
+    "RUF012",  # Mutable class default OK in tests
+    "S",       # Security rules relaxed in tests
+    "SLF001",  # Private member access OK in tests
+    "T201",    # Print OK in tests
+    "TID252",  # Relative imports OK in tests
+    "TRY002",  # Raise vanilla class OK in tests
+]

@@ -1,0 +1,26 @@
+From 36b4229780bb993ae45fd77cb8234c4ca574f782 Mon Sep 17 00:00:00 2001
+From: b-long <b-long@users.noreply.github.com>
+Date: Thu, 13 Nov 2025 03:02:55 -0500
+Subject: [PATCH 14/14] Fix small typo in README.md (#69)
+
+Replace "ctrl_d" with "ctrl-d"
+---
+ README.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 9012949..b693021 100644
+--- a/README.md
++++ b/README.md
+@@ -147,7 +147,7 @@ rich "Hello [b]World[/b]!" --rule --rule-style "red" --rule-char "="
+ 
+ Add `--pager` to display the content with a built in pager application.
+ 
+-Scroll the pager with cursor keys, page up/down, home, end. Alternatively use the scrollbar which will be visible to the right of the terminal. Or use the vi navigation (j, k, ctrl_d, ctrl-u).
++Scroll the pager with cursor keys, page up/down, home, end. Alternatively use the scrollbar which will be visible to the right of the terminal. Or use the vi navigation (j, k, ctrl-d, ctrl-u).
+ 
+ ```
+ rich __main__.py -n -g --theme monokai --pager
+-- 
+2.50.1 (Apple Git-155)
+

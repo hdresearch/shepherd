@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vcs-core"
+version = "0.1.0a1"
+description = "Provenance-native version control for executable worlds"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = [
+    "commons-vcs>=0.1.0",
+    "pygit2>=1.13.0",
+    "pydantic>=2.0",
+    "click>=8.0",
+    "tomli>=2.0; python_version < '3.11'",
+    "tomli-w>=1.0",
+]
+
+[project.scripts]
+vcs-core = "vcs_core.cli:main"
+
+[dependency-groups]
+test = [
+    "hatchling",
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "pytest-cov>=6.0.0,<7.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+    "hypothesis>=6.100.0",
+    # CLI tests import click.testing.CliRunner.
+    "click>=8.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.uv.sources]
+commons-vcs = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vcs_core"]
+include = ["src/vcs_core/_native/fs_capture_shim.c"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --durations=5 -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (>1s execution time)",
+    "integration: marks tests requiring external resources or network",
+    "container: marks tests requiring Podman/container runtime",
+    "vm_overlay: marks tests requiring macOS Podman Machine with VM overlay",
+    "e2e: marks end-to-end tests that run actual containers",
+    "loopback: marks tests that open local TCP sockets without internet access",
+    "benchmark: marks performance benchmark tests",
+    "spike: marks exploratory/documentation tests (not regression tests)",
+    "requires: marks tests as requiring a specific library",
+]
+
+[tool.coverage.run]
+source = ["vcs_core"]
+branch = true
+omit = [
+    # Platform-gated: only reachable on Linux with kernel overlayfs or FUSE.
+    "*/vcs_core/_kernel_overlay.py",
+    "*/vcs_core/_fuse_overlay.py",
+    # Thin re-export shim.
+    "*/vcs_core/_overlay.py",
+    # Native C shim (not Python).
+    "*/vcs_core/_native/*",
+    # Session daemon body requires a live daemon process; tested via
+    # container-gated integration tests, similar to overlay modules.
+    "*/vcs_core/_session.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+# Exclude lines that are structurally unreachable in test environments.
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if sys.platform != .linux.:",
+    "@overload",
+    "raise NotImplementedError",
+    # Protocol method stubs (abstract, never executed).
+    "\\.\\.\\.$",
+]
+fail_under = 80
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+enable_error_code = "deprecated"
+warn_unreachable = true
+
+# Ruff: see ruff.toml at workspace root.

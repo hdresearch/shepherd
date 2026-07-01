@@ -1,0 +1,57 @@
+From 53cb0e9f8ddcfccafc2073a05370928fed2bb8b9 Mon Sep 17 00:00:00 2001
+From: Olivier Philippon <olivier@textualize.io>
+Date: Tue, 14 Jun 2022 11:54:35 +0100
+Subject: [PATCH 06/14] Hard-code UTF-8 encoding for the input file
+
+---
+ CHANGELOG.md             | 6 ++++++
+ README.md                | 4 ++--
+ src/rich_cli/__main__.py | 2 +-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 9f1665f..1b15e17 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+ 
++## [Unreleased]
++
++### Changed
++
++- Rich-CLI now assumes that the input file is encoded in UTF-8 https://github.com/Textualize/rich-cli/pull/56
++
+ ## [1.8.0] - 2022-05-07
+ 
+ ### Changed
+diff --git a/README.md b/README.md
+index 0761abd..21f9bb6 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# Rich CLI
++# Rich-CLI
+ 
+-Rich-cli is a command line toolbox for fancy output in the terminal, built with [Rich](https://github.com/Textualize/rich).
++Rich-CLI is a command line toolbox for fancy output in the terminal, built with [Rich](https://github.com/Textualize/rich).
+ 
+ Use the `rich` command to highlight a variety of file types in the terminal, with specialized rendering for Markdown and JSON files. Additionally you can markup and format text from the command line.
+ 
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 4a5eb32..aa0a068 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -102,7 +102,7 @@ def read_resource(path: str, lexer: Optional[str]) -> Tuple[str, Optional[str]]:
+         if path == "-":
+             return (sys.stdin.read(), None)
+ 
+-        with open(path, "rt") as resource_file:
++        with open(path, "rt", encoding="utf8", errors="replace") as resource_file:
+             text = resource_file.read()
+         if not lexer:
+             _, dot, ext = path.rpartition(".")
+-- 
+2.50.1 (Apple Git-155)
+

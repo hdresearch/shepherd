@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shepherd Trace Viewer</title>
+  <link rel="stylesheet" href="/assets/fonts.css" />
+  <link rel="stylesheet" href="/assets/viewer.css" />
+  <script src="/assets/vendor/cytoscape.min.js"></script>
+  <script src="/assets/vendor/dagre.min.js"></script>
+  <script src="/assets/vendor/cytoscape-dagre.js"></script>
+</head>
+<body>
+  <header id="topbar">
+    <div class="title">shepherd <strong>trace viewer</strong></div>
+    <div id="run-meta" class="run-meta"></div>
+    <div id="badge" class="badge" hidden></div>
+  </header>
+
+  <div id="banners" hidden></div>
+
+  <main id="main" class="inspector-collapsed">
+    <section class="graph-pane">
+      <button id="inspector-open" class="inspector-open" type="button" aria-label="open trace details">details</button>
+      <div id="legend" class="graph-legend" aria-label="graph legend">
+        <span class="key"><i class="ln flow"></i>then</span>
+        <span class="key"><i class="ln explore"></i>branch</span>
+        <span class="key"><i class="ln replay-control"></i>replay</span>
+        <span class="key"><i class="ln basis"></i>basis</span>
+        <span class="key"><i class="ln join"></i>joins</span>
+        <span class="key"><i class="box merged"></i>scope</span>
+      </div>
+      <div id="lane-labels" aria-hidden="true"></div>
+      <div id="cy"></div>
+      <div id="tooltip" hidden></div>
+      <div id="minimap"><div id="minimap-cy"></div><div id="minimap-rect"></div></div>
+    </section>
+    <aside id="side">
+      <div class="side-head">
+        <span>inspector</span>
+        <button id="inspector-close" type="button" aria-label="close inspector">×</button>
+      </div>
+      <section id="detail">
+        <div class="placeholder">Click an event to inspect it.</div>
+      </section>
+    </aside>
+  </main>
+
+  <footer id="trace-controls">
+    <div id="playback" class="playback" title="trace playback timeline">
+      <span class="playback-label">event flow <b>-></b></span>
+      <button id="play-btn" aria-label="play trace">▶</button>
+      <div class="timeline-wrap">
+        <input id="play-range" type="range" min="0" max="0" value="0" />
+        <div id="play-ticks" class="play-ticks" aria-hidden="true"></div>
+      </div>
+      <span id="play-count" class="play-count"></span>
+    </div>
+  </footer>
+
+  <script src="/assets/viewer.js"></script>
+</body>
+</html>

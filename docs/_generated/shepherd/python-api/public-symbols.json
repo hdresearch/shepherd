@@ -1,0 +1,116 @@
+{
+  "facade": "shepherd",
+  "generator": "scripts/gen_shepherd_api_inventory.py",
+  "note": "Pre-rename facade; DESIGN S7 retargets to `shepherd`.",
+  "symbol_count": 18,
+  "symbols": {
+    "Artifact": {
+      "doc_hash": "471e8c479c15b415",
+      "kind": "class",
+      "signature": "class Artifact",
+      "source": "shepherd_runtime.nucleus.Artifact"
+    },
+    "DeliveryFailed": {
+      "doc_hash": "a0989424ab18c701",
+      "kind": "class",
+      "signature": "class DeliveryFailed(_NucleusError)",
+      "source": "shepherd_runtime.nucleus.DeliveryFailed"
+    },
+    "VcsCoreExecutionLink": {
+      "doc_hash": "b1e96a708923cb04",
+      "kind": "class",
+      "signature": "class VcsCoreExecutionLink",
+      "source": "shepherd_runtime.identities.VcsCoreExecutionLink"
+    },
+    "ModelRequest": {
+      "doc_hash": "d7f664098028c6ca",
+      "kind": "class",
+      "signature": "class ModelRequest",
+      "source": "shepherd_runtime.provider_boundary.ModelRequest"
+    },
+    "ModelResponse": {
+      "doc_hash": "ef4e42d032945d49",
+      "kind": "class",
+      "signature": "class ModelResponse",
+      "source": "shepherd_runtime.provider_boundary.ModelResponse"
+    },
+    "Permissive": {
+      "doc_hash": "e3b0c44298fc1c14",
+      "kind": "attribute",
+      "signature": "Permissive",
+      "source": "shepherd_runtime.nucleus.profiles.Permissive"
+    },
+    "Run": {
+      "doc_hash": "04326a44cf18d540",
+      "kind": "class",
+      "signature": "class Run(Generic[T])",
+      "source": "shepherd_runtime.nucleus.Run"
+    },
+    "RunRef": {
+      "doc_hash": "b2f63c4d4070d94d",
+      "kind": "class",
+      "signature": "class RunRef",
+      "source": "shepherd_runtime.nucleus.RunRef"
+    },
+    "SINGLE_OUTPUT_KEY": {
+      "doc_hash": "e3b0c44298fc1c14",
+      "kind": "attribute",
+      "signature": "SINGLE_OUTPUT_KEY",
+      "source": "shepherd_core.schema.SINGLE_OUTPUT_KEY"
+    },
+    "Workspace": {
+      "doc_hash": "0f35c06a9c0c9160",
+      "kind": "class",
+      "signature": "class Workspace",
+      "source": "shepherd_runtime.nucleus.Workspace"
+    },
+    "ask": {
+      "doc_hash": "a503f52d31400dd0",
+      "kind": "function",
+      "signature": "ask(effect: Ask[R]) -> R",
+      "source": "shepherd_runtime.effects.ask"
+    },
+    "current_binding": {
+      "doc_hash": "48e719da5f386473",
+      "kind": "function",
+      "signature": "current_binding(target_type: type[T]) -> ContextRef[T]",
+      "source": "shepherd_runtime.scope.current_binding"
+    },
+    "deliver": {
+      "doc_hash": "d3e92245d2ded937",
+      "kind": "function",
+      "signature": "deliver(result_type: type[T], goal: str, evidence: Sequence[object] = (), constraints: Sequence[str] = (), limits: DeliveryLimits | None = None) -> T | Awaitable[T]",
+      "source": "shepherd_runtime.nucleus.deliver"
+    },
+    "emit_artifact": {
+      "doc_hash": "7e6cf80848ae35a9",
+      "kind": "function",
+      "signature": "emit_artifact(content: str | bytes, kind: str, name: str, metadata: dict[str, Any] | None = None) -> Artifact",
+      "source": "shepherd_runtime.nucleus.emit_artifact"
+    },
+    "handle": {
+      "doc_hash": "856c9b51a72e8839",
+      "kind": "function",
+      "signature": "handle(args: Any = (), kwargs: Any = {}) -> _HandleContext",
+      "source": "shepherd_runtime.effects.handle"
+    },
+    "task": {
+      "doc_hash": "dcafa78170ce65e9",
+      "kind": "function",
+      "signature": "task(fn: Any = None, guidance: str | None = None, name: str | None = None, may: object | None = None) -> Any",
+      "source": "shepherd_runtime.nucleus.task"
+    },
+    "tell": {
+      "doc_hash": "57873c16cb9825f1",
+      "kind": "function",
+      "signature": "tell(effect: Tell) -> None",
+      "source": "shepherd_runtime.effects.tell"
+    },
+    "workspace": {
+      "doc_hash": "84799d31dd04a78b",
+      "kind": "function",
+      "signature": "workspace(model: object, root: str | Path | None = None, vcscore: bool = False) -> Workspace",
+      "source": "shepherd_runtime.nucleus.workspace"
+    }
+  }
+}

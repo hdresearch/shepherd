@@ -1,0 +1,26 @@
+From 2577b1b8a113c367ed4b6fcf6dfce4e86520464f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Fredrik=20Mellstr=C3=B6m?=
+ <11281108+harkabeeparolus@users.noreply.github.com>
+Date: Thu, 3 Jul 2025 19:25:47 +0200
+Subject: [PATCH 12/14] bump version
+
+---
+ pyproject.toml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index 9ee4955..f6dd652 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,7 +1,7 @@
+ [project]
+ name = "rich-cli"
+ urls.homepage = "https://github.com/Textualize/rich-cli"
+-version = "1.8.0"
++version = "1.8.1"
+ description = "Command Line Interface to Rich"
+ readme = "README.md"
+ license = "MIT"
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,24 @@
+From 2d62b33f8b078745c500723f551fe375f73c8958 Mon Sep 17 00:00:00 2001
+From: Olivier Philippon <olivier@textualize.io>
+Date: Tue, 14 Jun 2022 13:09:08 +0100
+Subject: [PATCH 05/14] [pyproject] Remove Python 3.6 classifier
+
+---
+ pyproject.toml | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index 22d89f5..f766f86 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -13,7 +13,6 @@ classifiers = [
+     "Operating System :: Microsoft :: Windows",
+     "Operating System :: MacOS",
+     "Operating System :: POSIX :: Linux",
+-    "Programming Language :: Python :: 3.6",
+     "Programming Language :: Python :: 3.7",
+     "Programming Language :: Python :: 3.8",
+     "Programming Language :: Python :: 3.9",
+-- 
+2.50.1 (Apple Git-155)
+

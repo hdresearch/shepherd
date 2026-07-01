@@ -1,0 +1,183 @@
+From 17e294b1e0d640f07247671808680daf20b7fcf5 Mon Sep 17 00:00:00 2001
+From: Derek Chong <dc@derekchong.com>
+Date: Mon, 22 Dec 2025 12:15:57 -0800
+Subject: [PATCH] Add --output option with unicode encoding bug
+
+This patch adds a new --output option for writing plain text output to files.
+However, it contains an intentional bug: the file is opened without specifying
+encoding="utf-8", which will cause unicode characters to be corrupted on
+systems where the default encoding is not UTF-8.
+
+The accompanying test file tests/test_unicode_output.py contains tests that
+will FAIL until this bug is fixed.
+
+Fix: Change open(output, "w") to open(output, "w", encoding="utf-8")
+---
+ src/rich_cli/__main__.py     |  19 ++++++-
+ tests/test_unicode_output.py | 103 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 121 insertions(+), 1 deletion(-)
+ create mode 100644 tests/test_unicode_output.py
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 98df6bb..a876487 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -385,6 +385,12 @@ class RichCommand(click.Command):
+     is_flag=True,
+     help="Force terminal output when not writing to a terminal.",
+ )
++@click.option(
++    "--output",
++    metavar="PATH",
++    default="",
++    help="Write plain text output to [b]PATH[/b].",
++)
+ @click.option(
+     "--export-html",
+     "-o",
+@@ -438,6 +444,7 @@ def main(
+     lexer: str = "",
+     hyperlinks: bool = False,
+     force_terminal: bool = False,
++    output: str = "",
+     export_html: str = "",
+     export_svg: str = "",
+     pager: bool = False,
+@@ -448,7 +455,7 @@ def main(
+         return
+     console = Console(
+         emoji=emoji,
+-        record=bool(export_html or export_svg),
++        record=bool(export_html or export_svg or output),
+         force_terminal=force_terminal if force_terminal else None,
+     )
+ 
+@@ -732,6 +739,16 @@ def main(
+         except Exception as error:
+             on_error("failed to save SVG", error)
+ 
++    if output:
++        try:
++            # BUG: Missing encoding parameter - unicode characters will be
++            # corrupted on systems where the default encoding is not UTF-8
++            with open(output, "w") as f:
++                text = console.export_text(clear=False)
++                f.write(text)
++        except Exception as error:
++            on_error("failed to write output file", error)
++
+ 
+ def render_csv(
+     resource: str,
+diff --git a/tests/test_unicode_output.py b/tests/test_unicode_output.py
+new file mode 100644
+index 0000000..30434c3
+--- /dev/null
++++ b/tests/test_unicode_output.py
+@@ -0,0 +1,103 @@
++"""Tests for unicode handling in file output.
++
++These tests verify that unicode characters are properly preserved
++when writing output to files using the --output option.
++
++NOTE: These tests will FAIL until the encoding bug is fixed.
++The fix is to add encoding="utf-8" to the open() call in __main__.py.
++"""
++
++import json
++from pathlib import Path
++
++import pytest
++from click.testing import CliRunner
++
++from rich_cli.__main__ import main
++
++
++class TestUnicodeFileOutput:
++    """Test unicode handling when writing to files."""
++
++    def test_unicode_preserved_in_text_output(self, tmp_path: Path):
++        """Unicode characters should be preserved in plain text file output.
++
++        This test will FAIL on systems where the default encoding is not UTF-8
++        (e.g., Windows with certain locale settings) because the --output
++        option opens files without specifying encoding="utf-8".
++        """
++        # Create input file with unicode characters from multiple scripts
++        input_file = tmp_path / "input.txt"
++        unicode_content = "Hello World! Привет мир! 你好世界! مرحبا بالعالم"
++        input_file.write_text(unicode_content, encoding="utf-8")
++
++        output_file = tmp_path / "output.txt"
++
++        runner = CliRunner()
++        result = runner.invoke(
++            main,
++            [str(input_file), "--output", str(output_file)],
++        )
++
++        assert result.exit_code == 0, f"Command failed: {result.output}"
++        assert output_file.exists(), "Output file was not created"
++
++        # Read back and verify unicode is preserved
++        output_content = output_file.read_text(encoding="utf-8")
++
++        # These assertions will fail if unicode was corrupted
++        assert "Привет мир" in output_content, "Russian text was corrupted"
++        assert "你好世界" in output_content, "Chinese text was corrupted"
++        assert "مرحبا بالعالم" in output_content, "Arabic text was corrupted"
++
++    def test_unicode_preserved_in_json_output(self, tmp_path: Path):
++        """Unicode in JSON content should be preserved in file output."""
++        # Create JSON input with unicode
++        input_file = tmp_path / "input.json"
++        json_content = {
++            "greeting_ru": "Привет мир",
++            "greeting_zh": "你好世界",
++            "greeting_ja": "こんにちは世界",
++            "emoji": "Hello! 🎉🚀✨",
++        }
++        input_file.write_text(
++            json.dumps(json_content, ensure_ascii=False), encoding="utf-8"
++        )
++
++        output_file = tmp_path / "output.txt"
++
++        runner = CliRunner()
++        result = runner.invoke(
++            main,
++            [str(input_file), "--json", "--output", str(output_file)],
++        )
++
++        assert result.exit_code == 0, f"Command failed: {result.output}"
++        assert output_file.exists(), "Output file was not created"
++
++        # Verify unicode preserved
++        output_content = output_file.read_text(encoding="utf-8")
++        assert "Привет мир" in output_content, "Russian text was corrupted"
++        assert "你好世界" in output_content, "Chinese text was corrupted"
++        assert "こんにちは世界" in output_content, "Japanese text was corrupted"
++
++    def test_emoji_preserved_in_output(self, tmp_path: Path):
++        """Emoji characters should be preserved in file output."""
++        input_file = tmp_path / "input.txt"
++        emoji_content = "Status: ✅ Success! 🎉 Party time! 🚀 Launch!"
++        input_file.write_text(emoji_content, encoding="utf-8")
++
++        output_file = tmp_path / "output.txt"
++
++        runner = CliRunner()
++        result = runner.invoke(
++            main,
++            [str(input_file), "--output", str(output_file)],
++        )
++
++        assert result.exit_code == 0, f"Command failed: {result.output}"
++
++        output_content = output_file.read_text(encoding="utf-8")
++        assert "✅" in output_content, "Checkmark emoji was corrupted"
++        assert "🎉" in output_content, "Party emoji was corrupted"
++        assert "🚀" in output_content, "Rocket emoji was corrupted"
+-- 
+2.50.1 (Apple Git-155)
+

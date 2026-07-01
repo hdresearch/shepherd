@@ -1,0 +1,368 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "05_multi_step_observation_stream",
+  "kind": "positive",
+  "description": "Two sequential unhandled effects; validate_observation_stream threads state through two HostCompleted observations and terminates with the first value.",
+  "covers": [
+    "Let",
+    "Perform",
+    "validate_observation_stream",
+    "multi-step",
+    "external-effect-request"
+  ],
+  "input": {
+    "program": {
+      "node": "Let",
+      "name": "a",
+      "bound": {
+        "node": "Perform",
+        "effect_kind": "ask1",
+        "payload": {
+          "node": "Lit",
+          "value": null
+        }
+      },
+      "body": {
+        "node": "Let",
+        "name": "b",
+        "bound": {
+          "node": "Perform",
+          "effect_kind": "ask2",
+          "payload": {
+            "node": "Lit",
+            "value": null
+          }
+        },
+        "body": {
+          "node": "Return",
+          "expr": {
+            "node": "Var",
+            "name": "a"
+          }
+        }
+      }
+    },
+    "observations": [
+      {
+        "value": 10
+      },
+      {
+        "value": 20
+      }
+    ]
+  },
+  "expected": {
+    "envelope_status": "completed",
+    "completed_value": 10,
+    "batches": [
+      {
+        "transition_id": "kernel-replay-transition:sha256:a3f22222eb85285ec70260366686bd47be5e27d65a054894e1d7f79d0efce0ab",
+        "idempotency_key": "idempotency:kernel-replay-transition:sha256:a3f22222eb85285ec70260366686bd47be5e27d65a054894e1d7f79d0efce0ab",
+        "transition_kind": "initial_run_prefix",
+        "admission_basis": null,
+        "profile": "core_reference_v0_lite",
+        "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+        "parent_transition_refs": [],
+        "records": [
+          {
+            "record_type": "EffectDeclaration",
+            "ref": "declaration:0",
+            "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+            "effect_kind": "ask1",
+            "payload": null,
+            "full_continuation_ref": "continuation-object:sha256:24c110ed805079a8d0323970fc0454f558f52081ada52b458bb14967602e6392",
+            "branch_ref": "branch:root",
+            "payload_schema_ref": null,
+            "operation_result_schema_ref": null,
+            "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3"
+          }
+        ],
+        "ref_map": {
+          "entries": [
+            [
+              "declaration:0",
+              "declaration:sha256:965e8a7ad9661552aa7608e6f6c65bb428454ad9d906898b0076a91209a1db28"
+            ]
+          ],
+          "map_schema_version": "shepherd_kernel_v3_reference.canonical-ref-map.v1"
+        },
+        "continuation_objects": [
+          {
+            "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+            "branch_ref": "branch:root",
+            "branch_scope_ref": null,
+            "position": "value",
+            "continuation_kind": "full",
+            "execution_context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+            "execution_context": {
+              "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+              "region_ref": "region:root",
+              "authority_ref": "authority:root"
+            },
+            "result_schema_ref": null,
+            "stack_ref": "continuation-object:sha256:52aa5728c9b273fb40ff04fec896057674a90f9b930097770c29646bd1b1337b",
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "root"
+          },
+          {
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "frame",
+            "frame_kind": "bind",
+            "summary": {
+              "required_schema_refs": [],
+              "code_identity_refs": [
+                "binder:sha256:e1ed4859781329cdb4a098f23d183ea1f4885642e9003557096cfbf4f2d58ce6"
+              ]
+            },
+            "payload": {
+              "binder_ref": "binder:sha256:e1ed4859781329cdb4a098f23d183ea1f4885642e9003557096cfbf4f2d58ce6",
+              "env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+              "context_ref": "ctx:sha256:4324ada2ffb8f610a578d9bb44735911a4cf325bfe351536662114ff2125bbc3",
+              "context": {
+                "binding_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "frame_kind": "bind"
+            }
+          },
+          {
+            "head_frame_ref": "continuation-object:sha256:3604bcfed907bbe1385bc1a381910e840567a2748d6bf9f1e1a4e2f969c3b391",
+            "tail_stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+            "summary": {
+              "depth": 1,
+              "required_schema_refs": [],
+              "code_identity_refs": []
+            },
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "stack-node"
+          },
+          {
+            "summary": {
+              "depth": 0,
+              "required_schema_refs": [],
+              "code_identity_refs": []
+            },
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "empty-stack"
+          },
+          {
+            "depth": 0,
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "env-empty"
+          }
+        ],
+        "external_evidence_links": [],
+        "semantic_context": {},
+        "batch_schema_version": "shepherd_kernel_v3_reference.semantic-transition-batch.v2",
+        "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+        "trace_record_schema_versions": [
+          "shepherd_kernel_v3_reference.trace-records.v0"
+        ],
+        "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+        "external_evidence_link_schema_version": "shepherd_kernel_v3_reference.external-evidence-link.v0",
+        "schema_refs": [],
+        "code_identity_refs": []
+      },
+      {
+        "transition_id": "kernel-replay-transition:sha256:169b7bc90d0aa31702004f6a1a197ae2c307c479fa5af7a03b82f284a6ab0a0b",
+        "idempotency_key": "idem-continuation-source:sha256:8f2b1ffed38ea10d11f74f93f3e466b86fffa8dc193a4162d981d8d99eb1184a",
+        "transition_kind": "unhandled_top_level_resume",
+        "admission_basis": {
+          "source_ref": "declaration:0",
+          "source_kind": "UnhandledSuspension",
+          "source_generation": {
+            "value": 0
+          },
+          "observed_frontier": {
+            "record_refs": [
+              "kernel-replay-transition:sha256:a3f22222eb85285ec70260366686bd47be5e27d65a054894e1d7f79d0efce0ab"
+            ]
+          },
+          "source_path_ref": "path:unhandled/declaration:0/branch:root",
+          "input_value_or_digest": 10,
+          "idempotency_key": "idem-continuation-source:sha256:8f2b1ffed38ea10d11f74f93f3e466b86fffa8dc193a4162d981d8d99eb1184a",
+          "one_shot_key": {
+            "value": "continuation-source:sha256:8f2b1ffed38ea10d11f74f93f3e466b86fffa8dc193a4162d981d8d99eb1184a"
+          },
+          "profile": "core_reference_v0_lite",
+          "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+          "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+          "record_schema_versions": [
+            "shepherd_kernel_v3_reference.trace-records.v0"
+          ],
+          "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+          "external_evidence_refs_or_digests": []
+        },
+        "profile": "core_reference_v0_lite",
+        "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+        "parent_transition_refs": [
+          "kernel-replay-transition:sha256:a3f22222eb85285ec70260366686bd47be5e27d65a054894e1d7f79d0efce0ab"
+        ],
+        "records": [
+          {
+            "record_type": "EffectDeclaration",
+            "ref": "declaration:1",
+            "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+            "effect_kind": "ask2",
+            "payload": null,
+            "full_continuation_ref": "continuation-object:sha256:d9461c6fbec1ebcf8d659c1ff13e282115f945c0c3e0a4999cbbd7237777993c",
+            "branch_ref": "branch:root",
+            "payload_schema_ref": null,
+            "operation_result_schema_ref": null,
+            "execution_context_ref": "ctx:sha256:dd36335750e0fba7ed9c396a1da49d0a614bcde71120f21c6f1bbcd1ab7e5f70"
+          }
+        ],
+        "ref_map": {
+          "entries": [
+            [
+              "declaration:1",
+              "declaration:sha256:fe22c514ba02c1d2ff0b9a5ab61ec5b42fcde610151b2f5bd418b1de503552c4"
+            ]
+          ],
+          "map_schema_version": "shepherd_kernel_v3_reference.canonical-ref-map.v1"
+        },
+        "continuation_objects": [
+          {
+            "head_frame_ref": "continuation-object:sha256:684dd6e641c774e2106895fe4de994c0dd96eb782a3d9683bd3020aaaeb6f9c7",
+            "tail_stack_ref": "continuation-object:sha256:d41d064d2452f19e4b6ac9dabe92389b10e157f74bbd25b4e0b9b1c4f3e98b4a",
+            "summary": {
+              "depth": 1,
+              "required_schema_refs": [],
+              "code_identity_refs": []
+            },
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "stack-node"
+          },
+          {
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "frame",
+            "frame_kind": "bind",
+            "summary": {
+              "required_schema_refs": [],
+              "code_identity_refs": [
+                "binder:sha256:30160d2b0d5fc8f21034d8f559aff45cd244719f1e75b276ec387b736370488a"
+              ]
+            },
+            "payload": {
+              "binder_ref": "binder:sha256:30160d2b0d5fc8f21034d8f559aff45cd244719f1e75b276ec387b736370488a",
+              "env_ref": "continuation-object:sha256:afc194789f6cbf65b1837a74655f53365dbff9021fb6e07582fb4b1504776be2",
+              "context_ref": "ctx:sha256:dd36335750e0fba7ed9c396a1da49d0a614bcde71120f21c6f1bbcd1ab7e5f70",
+              "context": {
+                "binding_env_ref": "continuation-object:sha256:afc194789f6cbf65b1837a74655f53365dbff9021fb6e07582fb4b1504776be2",
+                "region_ref": "region:root",
+                "authority_ref": "authority:root"
+              },
+              "frame_kind": "bind"
+            }
+          },
+          {
+            "parent_env_ref": "continuation-object:sha256:f086457bb895dc4a43c467bcc53fe6be0197507f5c42d43bbce705eb6bc03d53",
+            "name": "a",
+            "value": 10,
+            "depth": 1,
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "env-node"
+          },
+          {
+            "summary": {
+              "depth": 0,
+              "required_schema_refs": [],
+              "code_identity_refs": []
+            },
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "empty-stack"
+          },
+          {
+            "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+            "branch_ref": "branch:root",
+            "branch_scope_ref": null,
+            "position": "value",
+            "continuation_kind": "full",
+            "execution_context_ref": "ctx:sha256:dd36335750e0fba7ed9c396a1da49d0a614bcde71120f21c6f1bbcd1ab7e5f70",
+            "execution_context": {
+              "binding_env_ref": "continuation-object:sha256:afc194789f6cbf65b1837a74655f53365dbff9021fb6e07582fb4b1504776be2",
+              "region_ref": "region:root",
+              "authority_ref": "authority:root"
+            },
+            "result_schema_ref": null,
+            "stack_ref": "continuation-object:sha256:44da9e0c604379826c6c2a0e4b070cd9a33a6ae3a664c0fffe9b71402f342f0f",
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "root"
+          },
+          {
+            "depth": 0,
+            "object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+            "object_type": "env-empty"
+          }
+        ],
+        "external_evidence_links": [],
+        "semantic_context": {},
+        "batch_schema_version": "shepherd_kernel_v3_reference.semantic-transition-batch.v2",
+        "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+        "trace_record_schema_versions": [
+          "shepherd_kernel_v3_reference.trace-records.v0"
+        ],
+        "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+        "external_evidence_link_schema_version": "shepherd_kernel_v3_reference.external-evidence-link.v0",
+        "schema_refs": [],
+        "code_identity_refs": []
+      },
+      {
+        "transition_id": "kernel-replay-transition:sha256:7f5d7a3f199301e23abfc3f0f89857f9e87fea96bf6436051ea61f236f955cf1",
+        "idempotency_key": "idem-continuation-source:sha256:057c103e5c639f94dd8e8ce3109d446531dcdd58d6ce3f47b8706e7c355fb9f4",
+        "transition_kind": "unhandled_top_level_resume",
+        "admission_basis": {
+          "source_ref": "declaration:1",
+          "source_kind": "UnhandledSuspension",
+          "source_generation": {
+            "value": 0
+          },
+          "observed_frontier": {
+            "record_refs": [
+              "kernel-replay-transition:sha256:a3f22222eb85285ec70260366686bd47be5e27d65a054894e1d7f79d0efce0ab",
+              "kernel-replay-transition:sha256:169b7bc90d0aa31702004f6a1a197ae2c307c479fa5af7a03b82f284a6ab0a0b"
+            ]
+          },
+          "source_path_ref": "path:unhandled/declaration:1/branch:root",
+          "input_value_or_digest": 20,
+          "idempotency_key": "idem-continuation-source:sha256:057c103e5c639f94dd8e8ce3109d446531dcdd58d6ce3f47b8706e7c355fb9f4",
+          "one_shot_key": {
+            "value": "continuation-source:sha256:057c103e5c639f94dd8e8ce3109d446531dcdd58d6ce3f47b8706e7c355fb9f4"
+          },
+          "profile": "core_reference_v0_lite",
+          "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+          "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+          "record_schema_versions": [
+            "shepherd_kernel_v3_reference.trace-records.v0"
+          ],
+          "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+          "external_evidence_refs_or_digests": []
+        },
+        "profile": "core_reference_v0_lite",
+        "program_ref": "program:sha256:fe41cadac4c03615a822d9aa495f3896f126dc095940f88c0afdcfe0ea682781",
+        "parent_transition_refs": [
+          "kernel-replay-transition:sha256:169b7bc90d0aa31702004f6a1a197ae2c307c479fa5af7a03b82f284a6ab0a0b"
+        ],
+        "records": [],
+        "ref_map": {
+          "entries": [],
+          "map_schema_version": "shepherd_kernel_v3_reference.canonical-ref-map.v1"
+        },
+        "continuation_objects": [],
+        "external_evidence_links": [],
+        "semantic_context": {},
+        "batch_schema_version": "shepherd_kernel_v3_reference.semantic-transition-batch.v2",
+        "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+        "trace_record_schema_versions": [
+          "shepherd_kernel_v3_reference.trace-records.v0"
+        ],
+        "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+        "external_evidence_link_schema_version": "shepherd_kernel_v3_reference.external-evidence-link.v0",
+        "schema_refs": [],
+        "code_identity_refs": []
+      }
+    ]
+  }
+}

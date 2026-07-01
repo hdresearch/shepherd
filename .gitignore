@@ -1,0 +1,101 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Project-specific
+tmp/
+.runs/
+*.log
+patient-workspace/
+
+# Local artifacts (do not commit)
+/session*.jsonl
+/diff*.txt
+/=3.1.0
+
+# Claude Code
+.claude/
+.claude-transcripts/
+
+# Design docs: binary assets (academic papers, etc.)
+design/**/related-work/*.pdf
+design/**/deep-research/*.pdf
+spikes/claude-sdk-container/experiments/*.core
+
+# Spike scratch / throwaway state (probe-generated bare repos, output logs, etc.)
+spikes/**/scratch/
+spikes/**/scratch-*/
+.worktrees/
+examples/agent_tutorials/
+
+# Shepherd pipeline outputs (generated per-run)
+.shepherd/
+.vcscore/
+vcs-core/packages/core/.podman/

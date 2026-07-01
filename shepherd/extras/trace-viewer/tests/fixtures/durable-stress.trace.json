@@ -1,0 +1,57 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "task:pkg.mod:run:run-stress",
+  "frontier_id": "frontier:run-stress",
+  "run_ref": "run-stress",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "task-invocation",
+      "kind": "task.invocation",
+      "identity_domain": "shepherd.kernel.canonical.v2",
+      "record_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+      "body": {
+        "task_id": "pkg.mod:stress",
+        "args_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "may_profile": "Permissive"
+      }
+    },
+    {"id": "concept-a", "kind": "model.call", "model": "claude-sonnet", "tokens_out": 1200},
+    {"id": "concept-b", "kind": "model.call", "model": "claude-sonnet", "tokens_out": 1300},
+    {"id": "concept-c", "kind": "model.call", "model": "claude-sonnet", "tokens_out": 900},
+    {"id": "judge-a", "kind": "judge.score", "score": 3, "max": 6},
+    {"id": "judge-b", "kind": "judge.score", "score": 5, "max": 6},
+    {"id": "judge-c", "kind": "judge.score", "score": 2, "max": 6},
+    {"id": "decision", "kind": "supervisor.decision", "decision": "approved", "op": "FileCreate", "path": "index.html"},
+    {"id": "file-create", "kind": "FileCreate", "path": "index.html", "bytes": 4096},
+    {
+      "id": "workspace-transition",
+      "kind": "substrate.transition",
+      "binding": "workspace",
+      "head_from": "9999999999999999999999999999999999999999",
+      "head_to": "8888888888888888888888888888888888888888",
+      "semantic_op": "run",
+      "operation_id": "op-stress"
+    },
+    {"id": "run-lifecycle", "kind": "run.lifecycle", "transition": "finished", "terminal_status": "merged"}
+  ],
+  "causal_edges": [
+    ["task-invocation", "concept-a"],
+    ["task-invocation", "concept-b"],
+    ["task-invocation", "concept-c"],
+    ["concept-a", "judge-a"],
+    ["concept-b", "judge-b"],
+    ["concept-c", "judge-c"],
+    ["judge-b", "decision"],
+    ["decision", "file-create"],
+    ["file-create", "workspace-transition"],
+    ["workspace-transition", "run-lifecycle"]
+  ],
+  "owner_paths": {
+    "task:pkg.mod:run:run-stress": ["task-invocation", "workspace-transition", "run-lifecycle"],
+    "concepts": ["concept-a", "concept-b", "concept-c"],
+    "judging": ["judge-a", "judge-b", "judge-c", "decision", "file-create"]
+  }
+}

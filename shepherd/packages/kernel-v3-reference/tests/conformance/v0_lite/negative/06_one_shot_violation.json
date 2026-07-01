@@ -1,0 +1,41 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "06_one_shot_violation",
+  "kind": "negative-observation-admission",
+  "description": "Stream submits the same AdmittedObservation (same source_key) twice; the second submission is rejected at validate_admitted_observation step 2 because the source was consumed by the first.",
+  "covers": ["Let", "Perform", "validate_observation_stream", "one-shot", "AdmittedObservation"],
+  "input": {
+    "program": {
+      "node": "Let",
+      "name": "a",
+      "bound": {
+        "node": "Perform",
+        "effect_kind": "ask1",
+        "payload": {"node": "Lit", "value": null}
+      },
+      "body": {
+        "node": "Let",
+        "name": "b",
+        "bound": {
+          "node": "Perform",
+          "effect_kind": "ask2",
+          "payload": {"node": "Lit", "value": null}
+        },
+        "body": {"node": "Return", "expr": {"node": "Var", "name": "a"}}
+      }
+    },
+    "observations": [
+      {"value": 10},
+      {"reuse_index": 0}
+    ]
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "observation-admission",
+      "rejection_index": 1,
+      "rejection_class": "source-open",
+      "message_substring": "already consumed"
+    }
+  }
+}

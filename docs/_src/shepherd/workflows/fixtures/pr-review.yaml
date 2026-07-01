@@ -1,0 +1,27 @@
+fixture_version: 1
+source_state: checked-fixture
+manifest_version: scaffold
+workflow_id: official.authoring.pr_review
+aliases:
+  - authoring.pr_review
+docs_path: workflows/authoring/pr-review.md
+display_name: PR Review
+short_description: Review a pull request using the first-party authoring workflow.
+package_name: shepherd-authoring
+package_version: scaffold
+task_id: scaffold
+install_command: pip install "shepherd-ai[authoring]"
+run_command: shepherd workflow run official.authoring.pr_review
+docs_url: docs/shepherd/workflows/authoring/pr-review.md
+required_providers: []
+required_permissions: []
+required_capabilities: []
+config_fields: []
+artifacts: []
+examples: []
+compatibility: []
+placement_requirements: []
+execution_mode: scaffold  # scaffold | offline | live-provider
+documentation_source: shepherd/packages/authoring
+source_commit_or_date: scaffold
+owner: "@docs-or-workflow-owner"

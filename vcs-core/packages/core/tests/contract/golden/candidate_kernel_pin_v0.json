@@ -1,0 +1,109 @@
+{
+  "_comment": "Frozen contract for vcs-core candidate/selection kernel. See 260614-2100 D12.",
+  "candidate_outcome_record_fields": [
+    [
+      "binding",
+      "str"
+    ],
+    [
+      "candidate",
+      "str"
+    ],
+    [
+      "outcome",
+      "CandidateOutcomeStatus"
+    ],
+    [
+      "candidate_id",
+      "str"
+    ],
+    [
+      "store_id",
+      "str | None"
+    ],
+    [
+      "resource_id",
+      "str | None"
+    ],
+    [
+      "transition_digest",
+      "str | None"
+    ],
+    [
+      "revision_plan_digest",
+      "str | None"
+    ],
+    [
+      "content_digest",
+      "str | None"
+    ],
+    [
+      "revision_preparation_digest",
+      "str | None"
+    ],
+    [
+      "candidate_commit_digest",
+      "str | None"
+    ],
+    [
+      "evidence_digests",
+      "tuple[str, ...]"
+    ],
+    [
+      "producer_operation_id",
+      "str | None"
+    ],
+    [
+      "producer_world_oid",
+      "str | None"
+    ],
+    [
+      "evidence_refs",
+      "tuple[EvidenceRef, ...]"
+    ]
+  ],
+  "candidate_outcome_record_to_json": {
+    "binding": "workspace",
+    "candidate": "b3635880000000000000000000000000000000f1",
+    "content_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "outcome": "selected",
+    "transition_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "candidate_outcome_record_to_record_json": {
+    "binding": "workspace",
+    "candidate": "b3635880000000000000000000000000000000f1",
+    "candidate_commit_digest": null,
+    "candidate_id": "primary",
+    "content_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "evidence_digests": [],
+    "evidence_refs": [],
+    "operation_id": "op-1",
+    "outcome": "selected",
+    "outcome_digest": "sha256:23913918d0c5ff2ded3db9f0adda63bcb4a3a26f75228e8b1fe86dff6d774f68",
+    "producer_operation_id": "op-1",
+    "producer_world_oid": null,
+    "record_digest": "sha256:e061f1f857953990bffb272d97417d3f55f888fb2b1122f6dcbbbb649f1a43f0",
+    "resource_id": null,
+    "revision_plan_digest": null,
+    "revision_preparation_digest": null,
+    "schema": "vcscore/candidate-outcome/v1",
+    "store_id": null,
+    "transition_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "candidate_outcome_schema": "vcscore/candidate-outcome/v1",
+  "candidate_outcome_status_args": [
+    "selected",
+    "archived"
+  ],
+  "operation_final_schema": "vcscore/operation-final/v2",
+  "signatures": {
+    "OperationFinalBuilder.archive_candidate": "(self, *, selection: 'CandidateSelection') -> 'OperationFinalBuilder'",
+    "OperationFinalBuilder.build_prepared": "(self, *, operation_kind: 'str', target_ref: 'str', input_world_oid: 'str | None', snapshot: 'WorldSnapshot', transition: 'Mapping[str, Any]', parents: 'tuple[str, ...]' = (), candidate_refs: 'tuple[CandidateRevision, ...]' = (), candidate_tuples: 'tuple[PreparedCandidateTupleRecord, ...]' = ()) -> 'PreparedWorldOperation'",
+    "OperationFinalBuilder.select_candidate_plan": "(self, *, plan: 'CandidateSelectionPlan') -> 'OperationFinalBuilder'",
+    "SubstrateStore.create_candidate_from_prepared": "(self, *, transition: 'LogicalTransition', plan: 'PreparedRevisionPlan', preparation: 'RevisionPreparationRecord', payload_descriptor: 'ValidatedPayloadDescriptor', payload: 'dict[str, Any]', candidate_id: 'str' = 'primary', parents: 'tuple[str | pygit2.Oid, ...]' = (), message: 'str | None' = None, evidence_resolver: 'EvidenceResolver | None' = None) -> 'CandidateRevision'",
+    "SubstrateStore.create_unsafe_unprepared_candidate": "(self, *, operation_id: 'str', binding: 'str', candidate_id: 'str' = 'primary', payload: 'dict[str, Any]', parents: 'tuple[str | pygit2.Oid, ...]' = (), message: 'str | None' = None) -> 'CandidateRevision'",
+    "WorldAuthorityFinalizer.publish_prepared": "(self, prepared: 'PreparedWorldOperation') -> 'AuthorityPublicationOutcome'"
+  },
+  "spi_version": 0,
+  "substrate_driver_contract_revision": "v0.1"
+}

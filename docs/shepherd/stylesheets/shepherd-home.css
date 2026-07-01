@@ -1,0 +1,96 @@
+/* ============================================================================
+   Shepherd docs — landing-only layer (loaded after extra.css)
+   A calm, text-forward hero in the same visual language as the article theme:
+   warm paper, teal eyebrow, light tracked H1, a bordered card router. No loud
+   gradient — the landing belongs to the same "research-framework" system.
+   Applies on the home page (hide: [navigation, toc] -> full-width content).
+   ============================================================================ */
+
+/* Hero ----------------------------------------------------------------------- */
+.md-typeset .shp-hero {
+  padding: 1.4rem 0 0.6rem;
+  border: none;
+  background: none;
+  max-width: 46rem;
+}
+.md-typeset .shp-eyebrow {
+  font: 600 12px/1.4 var(--md-code-font-family);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.7rem;
+}
+.md-typeset .shp-hero h1 {
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink-heading);
+  margin: 0 0 0.5rem;
+}
+/* :not(.shp-eyebrow) — the eyebrow is also a hero <p>; without the exclusion this
+   lead-paragraph rule outranks .shp-eyebrow and inflates the kicker to 18px. */
+.md-typeset .shp-hero > p:not(.shp-eyebrow) {
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--ink-lead);
+  max-width: 38rem;
+  margin: 0 0 1.3rem;
+}
+
+/* Buttons -------------------------------------------------------------------- */
+.md-typeset .shp-hero .md-button {
+  border: 1px solid var(--hairline);
+  color: var(--accent-ink);
+  border-radius: 8px;
+  padding: 0.5em 1.1em;
+  font-size: 14.5px;
+  font-weight: 500;
+  margin: 0 0.5rem 0.5rem 0;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+.md-typeset .shp-hero .md-button:hover {
+  background-color: var(--accent-tint);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.md-typeset .shp-hero .md-button--primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.md-typeset .shp-hero .md-button--primary:hover {
+  background-color: var(--accent-ink);
+  border-color: var(--accent-ink);
+  color: #fff;
+}
+
+/* Card router ---------------------------------------------------------------- */
+.md-typeset .grid.cards > ul > li {
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background-color: var(--panel);
+  padding: 1.1rem 1.2rem;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-soft);
+  box-shadow: 0 6px 20px rgba(23, 141, 140, 0.09);
+}
+.md-typeset .grid.cards > ul > li > hr {
+  margin: 0.6rem 0;
+  background-color: var(--hairline);
+}
+.md-typeset .grid.cards .twemoji,
+.md-typeset .grid.cards .lg { color: var(--accent); }
+.md-typeset .grid.cards a:last-child { color: var(--accent-ink); font-weight: 500; }
+
+/* Snippet under the hero sits a touch tighter to the buttons. */
+.md-typeset .shp-hero + .highlight { margin-top: 0.4rem; max-width: 46rem; }
+
+/* Centre the landing column. nav + toc are hidden on the home, so Material's
+   full-width main otherwise sits left-of-centre. Scoped to the home via the
+   hero's presence (:has). */
+.md-main:has(.shp-hero) .md-main__inner { justify-content: center; }
+.md-main:has(.shp-hero) .md-content { max-width: 52rem; }

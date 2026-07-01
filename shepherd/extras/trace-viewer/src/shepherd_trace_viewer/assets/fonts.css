@@ -1,0 +1,17 @@
+/* Vendored from Google Fonts (latin subset) — keeps the viewer fully offline.
+ * Instrument Serif: display/headings. JetBrains Mono: body/mono (variable). */
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal; font-weight: 400; font-display: swap;
+  src: url('./vendor/fonts/instrument-serif-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic; font-weight: 400; font-display: swap;
+  src: url('./vendor/fonts/instrument-serif-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal; font-weight: 300 600; font-display: swap;
+  src: url('./vendor/fonts/jetbrains-mono.woff2') format('woff2');
+}

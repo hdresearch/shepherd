@@ -1,0 +1,50 @@
+.PHONY: all format lint test tests test_watch test_unit clean install build typecheck
+
+# Default test target
+TEST_FILE ?= tests/
+
+# Frozen dependencies for CI reproducibility
+.EXPORT_ALL_VARIABLES:
+UV_FROZEN = true
+
+# Run all tests
+test tests:
+	uv run --group test pytest $(TEST_FILE)
+
+# Run tests in watch mode
+test_watch:
+	uv run --group test ptw --now . -vv -- $(TEST_FILE)
+
+# Run unit tests only (no network)
+test_unit:
+	uv run --group test pytest tests/unit/ --disable-socket
+
+# Lint code
+lint:
+	uv run --group lint ruff check src/ tests/
+	uv run --group lint ruff format src/ tests/ --diff
+
+# Format code
+format:
+	uv run --group lint ruff format src/ tests/
+	uv run --group lint ruff check --fix src/ tests/
+
+# Type checking only
+typecheck:
+	uv run --group typing mypy src/
+
+# Clean build artifacts
+clean:
+	rm -rf build/ dist/ *.egg-info .pytest_cache .mypy_cache .ruff_cache
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+# Install in development mode
+install:
+	uv sync --all-groups
+
+# Build package
+build:
+	uv build
+
+# Run a specific test file
+# Usage: make test TEST_FILE=tests/unit/test_scope.py

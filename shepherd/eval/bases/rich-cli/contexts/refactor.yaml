@@ -1,0 +1,23 @@
+# Refactor Context
+# Scenario: Extract formatter logic into separate module
+#
+# Prerequisites:
+#   1. Generate scenario: python fixtures/generate.py scenario rich-cli/refactor ./workspace
+#   2. Checkout branch: cd workspace && git checkout refactor/split-formatters
+#
+# Run with:
+#   ai-runner run pipelines.refactor:main --context fixtures/bases/rich-cli/contexts/refactor.yaml
+#
+# Expected: Agent should extract ~140 lines of formatting code to formatters.py
+
+source:
+  type: local
+  path: ./workspace
+
+params:
+  target_files: "src/rich_cli/__main__.py"
+  scenario: "refactor"
+
+# Note: artifact paths are relative to this context file's location
+artifacts:
+  instructions.md: ../../../workspace/.ai-runner/scenario/instructions.md

@@ -1,0 +1,71 @@
+# Configure a provider
+
+> Page status: scaffold
+> Source state: scaffold
+> Applies to: Shepherd v1.0-dev
+> Owner: @docs-system-owner (TBD)
+> Validation: not yet validated
+
+*This is a how-to guide for one job. New to Shepherd? Start with the tutorial. For exact APIs, see the reference.*
+
+!!! warning "Scaffold — not yet runnable"
+    This page is a draft against a surface that has not shipped. Treat commands and code as illustrative until the page is promoted.
+
+**Job.** Record credentials for a model provider once, verify Shepherd can
+reach it, and select its models per workspace in code.
+
+**Prerequisites.** `shepherd-ai` installed ([install](../start/install.md) —
+itself unshipped); a provider account and API key. **Live providers cost
+money and are non-deterministic.** The offline examples need none of this.
+
+## Steps
+
+The `shepherd provider ...` commands below are the planned CLI surface —
+**unshipped**, written out so reviewers can check the recipe's shape.
+
+1. **Log in once.** Records the credential (or a reference to it) in the
+   configured credential store — not in your repository:
+
+    ```bash
+    shepherd provider login claude
+    ```
+
+    Prefer the credential store. If you must use an environment variable,
+    commit only placeholders: `ANTHROPIC_API_KEY=<your-key>`.
+
+2. **Verify without running anything.** Read-only checks of the installed
+   SDK, the credential, and provider reachability:
+
+    ```bash
+    shepherd provider check claude
+    shepherd provider list --json
+    ```
+
+3. **Select the model in code.** Real today in the checked examples: import
+   the provider entry point; the workspace pins the model for every task
+   call inside the block:
+
+    ```python
+    import shepherd as shp
+    from shepherd.providers import claude
+
+    with shp.workspace(model=claude("sonnet-4-5")):
+        ...  # every task call in here uses that model
+    ```
+
+## Expected result
+
+- `shepherd provider check claude` reports the SDK installed, a credential
+  present, and the provider reachable (planned contract; unshipped).
+- A task called inside the workspace runs against the selected model; the
+  same code targets a different model by changing only `claude("...")`.
+
+## If it fails
+
+- **No credential found** — re-run `shepherd provider login claude`; check
+  for an environment variable set in one shell but not another.
+- **The task raises before any model call** — it was called outside
+  `with shp.workspace(model=...)`; see
+  [Debug your first run](debug-your-first-run.md).
+- **Cost or flaky-output surprises** — live calls are billed and vary run to
+  run; keep CI and tests on the deterministic offline provider.

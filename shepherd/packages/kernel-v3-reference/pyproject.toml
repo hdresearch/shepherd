@@ -1,0 +1,46 @@
+[project]
+name = "shepherd-kernel-v3-reference"
+version = "0.1.0a1"
+description = "Reference interpreter for the shepherd-kernel-v3 source calculus."
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+lint = [
+    "ruff>=0.13.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_kernel_v3_reference"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = ["-q"]
+
+[tool.ruff]
+extend = "../../../ruff.toml"
+
+[tool.ruff.lint]
+extend-ignore = [
+    "B008",   # Immutable reference value defaults keep fixtures concise.
+    "B904",   # Internal control exceptions keep source-evaluator traces compact.
+    "D",      # Reference artifact code favors theorem/fixture clarity over public docstring coverage.
+    "N818",   # Domain exception names match the paper/proof vocabulary.
+    "RUF005", # Tuple/list concatenation is used in trace fixture mutation tests for readability.
+    "RUF022", # Export order mirrors proof-facing surface grouping.
+    "RUF043", # Test regex strings are intentionally small and readable.
+    "SIM110", # Explicit loops are clearer in this reference code.
+    "TC001",  # Runtime imports keep dataclass/type aliases simple in the reference artifact.
+    "TC002",
+    "TC003",
+    "TRY004", # The reference interpreter uses RuntimeError for invalid machine states.
+    "UP007",  # Explicit Union aliases read closer to the proof/model notation.
+]

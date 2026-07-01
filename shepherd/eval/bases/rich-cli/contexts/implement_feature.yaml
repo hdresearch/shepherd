@@ -1,0 +1,23 @@
+# Implement Feature Context
+# Scenario: Add CSV output format support
+#
+# Prerequisites:
+#   1. Generate scenario: python fixtures/generate.py scenario rich-cli/implement_feature ./workspace
+#   2. Checkout branch: cd workspace && git checkout feature/add-csv-export
+#
+# Run with:
+#   ai-runner run pipelines.implement_change:main --context fixtures/bases/rich-cli/contexts/implement_feature.yaml
+#
+# Expected: Agent should implement --csv flag for CSV table export
+
+source:
+  type: local
+  path: ./workspace
+
+params:
+  feature_name: "csv-export"
+  scenario: "implement_feature"
+
+# Note: artifact paths are relative to this context file's location
+artifacts:
+  design.md: ../../../workspace/.ai-runner/scenario/design.md

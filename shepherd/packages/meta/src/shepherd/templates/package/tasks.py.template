@@ -1,0 +1,11 @@
+"""Tasks for the {{name}} package."""
+
+from __future__ import annotations
+
+from shepherd import task
+
+
+@task
+def hello_{{module_name}}(name: str) -> str:
+    """A starter task. Replace this with your first real task."""
+    return f"Hello from {{name}}, {name}!"

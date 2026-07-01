@@ -1,0 +1,483 @@
+/* ============================================================================
+   Shepherd docs — Research-Framework Documentation Theme
+   ----------------------------------------------------------------------------
+   Recreates the locked visual-language handoff on MkDocs + Material: a pure-white page,
+   a SINGLE teal accent (the legacy Shepherd #178D8C), IBM Plex type, light
+   tracked headings, bordered code cards with filename bars, teal-tint note
+   callouts, warm param tables, and a bordered prev/next pager.
+
+   Token-driven: the accent is four custom properties (--accent*), so re-skinning
+   is a one-place change. Everything else maps those + the warm neutrals onto
+   Material's own variables and restyles the components.
+
+   REPO ADAPTATIONS (Material idioms, not deviations from the spec):
+   - Top tabs render in Material's tabs bar (below the header), not inline in the
+     header row — Material's idiom for "top-level area tabs".
+   - The code "Copy" control is Material's clipboard icon, not a text button.
+   - Admonition icons use Material's icon system, themed to the round teal chip.
+   ============================================================================ */
+
+:root {
+  /* --- Accent: teal (legacy Shepherd). One source of truth. --- */
+  --accent:       #178D8C;   /* active nav/tab, eyebrow, icons, note border, code calls, logo */
+  --accent-ink:   #137777;   /* links, active-nav text, TOC active, breadcrumb, table labels */
+  --accent-tint:  #E9F4F0;   /* tinted fill: active nav item, note callout body */
+  --accent-soft:  #CFE7DF;   /* hairline/underline under links */
+
+  /* --- Neutrals (warm greys; the page itself is pure white) --- */
+  --paper:        #FFFFFF;   /* page background — pure white, matches the other research-framework pages */
+  --panel:        #FFFFFF;   /* cards/header/search — now equal to the page; cards read by their border (border-only) */
+  --ink-heading:  #1A1B22;   /* H1-H3, strong */
+  --ink-body:     #55565F;   /* body */
+  --ink-lead:     #44454D;   /* lead paragraph */
+  --ink-muted:    #8A8B93;   /* meta, captions, inactive */
+  --hairline:     #E7E5E0;   /* borders, dividers */
+  --hairline-2:   #EFEDE9;   /* lighter inner dividers (table rows) */
+  --hover-fill:   #F4F2EE;   /* nav/row hover, header band, footer */
+  --code-surface: #F7F5F2;   /* code & command backgrounds */
+  --code-bar:     #FCFBF9;   /* code filename bar / tab strip */
+  --inline-fill:  #F1EFEB;   /* inline code pill */
+  --teal-grey:    #6E827A;   /* search affordance */
+
+  /* --- Semantic (non-accent) callouts --- */
+  --warn:        #C08A1E; --warn-bg: #FAF2DF; --warn-border: #EEDFBD; --warn-ink: #8A6314;
+  --tip:         #2E8B6F; --tip-bg:  #E9F4EF; --tip-border:  #CFE6DC; --tip-ink:  #1E6B53;
+
+}
+
+/* Material's palette scheme declares these on <body data-md-color-scheme>, which
+   outranks :root — so the token -> Material mapping must live in the scheme rule
+   to win (probe-confirmed: body bg / footer bg fell back to Material's white/dark
+   defaults when these sat in :root). Light-only: only the default scheme exists. */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        var(--paper);        /* header background */
+  --md-primary-bg-color:        var(--ink-heading);  /* header foreground (text/icons) */
+  --md-accent-fg-color:         var(--accent);
+  --md-default-bg-color:        var(--paper);
+  --md-default-fg-color:        #1A1B22;
+  --md-default-fg-color--light:    #55565F;
+  --md-default-fg-color--lighter:  #8A8B93;
+  --md-default-fg-color--lightest: #E7E5E0;
+  --md-typeset-color:           var(--ink-body);
+  --md-typeset-a-color:         var(--accent-ink);
+  --md-code-bg-color:           var(--code-surface);
+  --md-code-fg-color:           var(--ink-heading);
+  --md-footer-bg-color:         var(--paper);
+  --md-footer-bg-color--dark:   var(--hover-fill);
+  --md-footer-fg-color:         var(--ink-muted);
+  --md-footer-fg-color--light:  var(--ink-muted);
+}
+
+/* ----------------------------------------------------------------------------
+   Base / paper
+   ---------------------------------------------------------------------------- */
+.md-main,
+.md-container,
+.md-content { background-color: var(--paper); }
+
+.md-typeset {
+  font-size: 16.5px;
+  line-height: 1.75;
+  color: var(--ink-body);
+}
+
+/* ----------------------------------------------------------------------------
+   Announce bar (overrides/main.html)
+   ---------------------------------------------------------------------------- */
+.md-banner { background-color: #1A1B22; color: #C9CAD2; }
+/* Material wraps the announce content in .md-banner__inner.md-typeset, whose body
+   text colour (#55565F) would otherwise win and leave the label near-invisible on
+   the dark bar. Re-assert the light banner text on the inner so it stays legible. */
+.md-banner .md-typeset { color: #C9CAD2; }
+.md-banner__inner { font-size: 13.5px; text-align: center; margin: 0.5rem auto; }
+.shp-announce { display: inline-flex; align-items: center; gap: 0.5rem; }
+.shp-announce__pill {
+  background-color: var(--accent);
+  color: #fff;
+  font: 600 10.5px/1.4 var(--md-code-font-family);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+/* ----------------------------------------------------------------------------
+   Header + top tabs
+   ---------------------------------------------------------------------------- */
+.md-header {
+  background-color: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--ink-heading);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: none;
+}
+.md-header--shadow { box-shadow: none; }          /* hairline edge, not a shadow */
+.md-header__title { font-weight: 600; letter-spacing: -0.01em; }
+.md-header__button.md-logo img { height: 1.45rem; width: auto; }
+
+.md-tabs {
+  background-color: var(--paper);
+  color: var(--ink-body);
+  border-bottom: 1px solid var(--hairline);
+}
+.md-tabs__link {
+  font-size: 0.8rem;
+  opacity: 1;
+  color: var(--ink-body);
+  transition: color 0.12s;
+}
+.md-tabs__link:hover { color: var(--ink-heading); }
+.md-tabs__item--active { box-shadow: inset 0 -2px 0 var(--accent); }
+.md-tabs__item--active .md-tabs__link {
+  color: var(--accent-ink);
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* Search field — resting state evokes the spec's bordered box + muted icon. */
+.md-search__form {
+  background-color: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  box-shadow: none;
+}
+.md-search__form:hover { background-color: var(--panel); border-color: #C9C6BF; }
+.md-search__input { color: var(--ink-heading); font-size: 13.5px; }
+.md-search__input::placeholder { color: var(--ink-muted); }
+.md-search__icon { color: var(--teal-grey); }
+[data-md-toggle="search"]:checked ~ .md-header .md-search__form { background-color: var(--panel); }
+/* Search "guidance" bar ("Type to start searching" / "N matching documents") —
+   light-teal instead of the warm grey, reusing the note-callout pairing. */
+.md-search-result__meta {
+  color: var(--accent-ink);
+  background-color: var(--accent-tint);
+}
+
+/* ----------------------------------------------------------------------------
+   Left sidebar nav — active item is FILL + WEIGHT + COLOR, no left accent bar.
+   ---------------------------------------------------------------------------- */
+.md-nav { font-size: 13.5px; }
+.md-nav__title { color: var(--ink-heading); font-weight: 600; }
+/* Real <a>/<label> links carry the padding + fill. EXCLUDE .md-nav__container:
+   navigation.indexes wraps each section-index link in a <div> that ALSO carries
+   .md-nav__link, so without this our padding stacks on both the wrapper and the
+   inner <a> and pushes index/active items ~10px right of their siblings. */
+/* Scoped to --primary so this does NOT also override the right TOC (--secondary),
+   which has its own spec rule (6px 0 6px 14px on a left rail) further down. */
+.md-nav--primary .md-nav__link:not(.md-nav__container) {
+  color: var(--ink-body);
+  border-radius: 6px;
+  padding: 6px 10px;        /* locked spec: items 6px 10px */
+  margin: 0;                /* remove Material's ~8.4px (0.625em) inter-item margin —
+                               that gap was the "too loose" drift from the handoff spec */
+  transition: background-color 0.12s, color 0.12s;
+}
+.md-nav--primary .md-nav__link:not(.md-nav__container):hover {
+  background-color: var(--hover-fill);
+  color: var(--ink-heading);
+}
+/* The index-link wrapper is a pure flex row — neutralise its inherited link box. */
+.md-nav__item > .md-nav__container { padding: 0; background: none; border-radius: 0; }
+/* Selected state on the real <a> only (never the wrapper) so it can't shift text. */
+.md-nav__link--active {
+  background-color: var(--accent-tint);
+  color: var(--accent-ink) !important;
+  font-weight: 700 !important;   /* bold active text, both rails (beats the section/label 600 rule) */
+}
+/* Section (group) headers a touch stronger. */
+.md-nav__item--section > .md-nav__link,
+label.md-nav__link[for] { color: var(--ink-heading); font-weight: 600; }
+
+/* ----------------------------------------------------------------------------
+   Article typography
+   ---------------------------------------------------------------------------- */
+.md-typeset h1 {
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--ink-heading);
+  margin: 0 0 0.5rem;
+}
+.md-typeset h2 {
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  color: var(--ink-heading);
+  margin: 48px 0 8px;
+}
+.md-typeset h3 {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink-heading);
+  margin: 32px 0 6px;
+}
+/* Lead paragraph (first para after the H1). */
+.md-typeset h1 + p { font-size: 18px; line-height: 1.7; color: var(--ink-lead); }
+
+/* Body links — accent ink + soft underline; scoped away from chrome/cards/buttons. */
+.md-typeset a:not(.md-button):not(.headerlink):not(.md-tag) {
+  color: var(--accent-ink);
+  border-bottom: 1px solid var(--accent-soft);
+  text-decoration: none;
+  transition: color 0.12s, border-color 0.12s;
+}
+.md-typeset a:not(.md-button):not(.headerlink):hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.md-typeset .grid.cards a,
+.md-typeset a.headerlink { border-bottom: none; }
+
+/* Inline code (not inside code blocks). */
+.md-typeset :not(pre) > code {
+  background-color: var(--inline-fill);
+  color: var(--ink-lead);
+  font-size: 13px;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  border: none;
+}
+
+/* The leading `> Key: value` page-metadata block — honest but quiet. */
+.md-typeset > blockquote:first-of-type {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+  border-left: 2px solid var(--hairline);
+  margin: 0 0 1.4em;
+}
+.md-typeset > blockquote:first-of-type p { margin: 0.1em 0; }
+/* The page mode-line (`*This is a concept page...*`) as a small caption. */
+.md-typeset > p > em:only-child { color: var(--ink-muted); font-size: 14px; }
+
+/* ----------------------------------------------------------------------------
+   Admonitions — 1px outer + 4px left bar + tinted bg + round icon chip.
+   info -> teal "note" · warning -> amber · success -> green "tip".
+   ---------------------------------------------------------------------------- */
+.md-typeset .admonition,
+.md-typeset details {
+  font-size: 14.5px;
+  line-height: 1.65;
+  border: 1px solid var(--hairline);
+  border-left-width: 4px;
+  border-radius: 8px;
+  box-shadow: none;
+  padding: 0;
+}
+.md-typeset .admonition-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 12px 16px 10px 46px;
+  margin: 0;
+  background-color: transparent;
+}
+.md-typeset .admonition > :not(.admonition-title),
+.md-typeset details > :not(summary) { padding-left: 16px; padding-right: 16px; }
+.md-typeset .admonition > :last-child { padding-bottom: 14px; }
+/* Tighten the title->body gap: drop the first body block's stock top margin so the
+   title's padding-bottom alone sets the gap (Material's <p> margin otherwise stacks
+   on it for ~15px). Later body blocks keep their inter-paragraph spacing. */
+.md-typeset .admonition > .admonition-title + :not(.admonition-title),
+.md-typeset details > summary + :not(summary) { margin-top: 0; }
+/* Round icon chip. */
+.md-typeset .admonition-title::before {
+  width: 21px; height: 21px;
+  top: 11px; left: 16px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: #fff;
+  -webkit-mask-image: none; mask-image: none;
+}
+
+/* info / note -> teal */
+.md-typeset .admonition.info, .md-typeset .admonition.note,
+.md-typeset details.info, .md-typeset details.note {
+  border-color: var(--hairline);
+  border-left-color: var(--accent);
+  background-color: var(--accent-tint);
+}
+.md-typeset .info > .admonition-title, .md-typeset .note > .admonition-title { color: var(--accent-ink); }
+.md-typeset .info > .admonition-title::before,
+.md-typeset .note > .admonition-title::before {
+  background-color: var(--accent);
+  -webkit-mask-image: var(--md-admonition-icon--info);
+  mask-image: var(--md-admonition-icon--info);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: 13px; mask-size: 13px;
+  background: var(--accent);
+}
+
+/* warning -> amber */
+.md-typeset .admonition.warning, .md-typeset details.warning {
+  border-color: var(--warn-border);
+  border-left-color: var(--warn);
+  background-color: var(--warn-bg);
+}
+.md-typeset .warning > .admonition-title { color: var(--warn-ink); }
+.md-typeset .warning > .admonition-title::before { background-color: var(--warn); }
+
+/* success / tip -> green */
+.md-typeset .admonition.success, .md-typeset .admonition.tip,
+.md-typeset details.success, .md-typeset details.tip {
+  border-color: var(--tip-border);
+  border-left-color: var(--tip);
+  background-color: var(--tip-bg);
+}
+.md-typeset .success > .admonition-title, .md-typeset .tip > .admonition-title { color: var(--tip-ink); }
+.md-typeset .success > .admonition-title::before,
+.md-typeset .tip > .admonition-title::before { background-color: var(--tip); }
+
+/* One tint per callout: override Material's per-type title band (equal specificity,
+   loaded later) so the title row matches the body fill instead of two-toning. */
+.md-typeset .admonition > .admonition-title,
+.md-typeset details > .admonition-title { background-color: transparent; }
+
+/* ----------------------------------------------------------------------------
+   Code blocks — bordered card, warm surface, filename bar, themed syntax.
+   ---------------------------------------------------------------------------- */
+.md-typeset .highlight,
+.md-typeset pre { margin: 1.2em 0; }
+.md-typeset pre > code {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background-color: var(--code-surface);
+  color: var(--ink-heading);
+  font-size: 13.5px;
+  line-height: 1.75;
+  padding: 16px 18px;
+}
+/* Filename bar (```python title="program.py"). */
+.md-typeset .highlight span.filename {
+  background-color: var(--code-bar);
+  border: 1px solid var(--hairline);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  font: 12px/1.6 var(--md-code-font-family);
+  color: var(--ink-muted);
+  padding: 8px 14px;
+  margin: 0;
+}
+.md-typeset .highlight span.filename + pre > code { border-radius: 0 0 8px 8px; border-top: none; }
+.md-clipboard { color: var(--ink-muted); }
+.md-clipboard:hover { color: var(--accent); }
+
+/* Syntax highlighting: Material's STOCK (vibrant) Pygments palette, kept on
+   purpose. The muted spec palette (amber/green/teal/grey) read as dull/gloomy on
+   the light code surface, so the per-token overrides were removed (2026-06-28) to
+   restore the brighter pre-re-theme colours. The code CARD above stays ours. */
+
+/* ----------------------------------------------------------------------------
+   Content tabs (pip / uv / poetry style)
+   ---------------------------------------------------------------------------- */
+.md-typeset .tabbed-set { border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
+.md-typeset .tabbed-labels {
+  background-color: var(--code-bar);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: none;
+}
+.md-typeset .tabbed-labels > label {
+  font: 13px/1 var(--md-code-font-family);
+  color: var(--ink-muted);
+  padding: 10px 15px;
+}
+.md-typeset .tabbed-set > input:checked + label {
+  color: var(--ink-heading);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+}
+.js .md-typeset .tabbed-labels::before { background-color: var(--accent); }
+.md-typeset .tabbed-content { background-color: var(--code-surface); }
+
+/* ----------------------------------------------------------------------------
+   Tables — bordered, rounded, warm header band, light row dividers.
+   ---------------------------------------------------------------------------- */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 13.5px;
+}
+.md-typeset table:not([class]) th {
+  background-color: var(--hover-fill);
+  color: var(--ink-body);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  border: none;
+  padding: 11px 16px;
+}
+.md-typeset table:not([class]) td {
+  color: var(--ink-body);
+  border: none;
+  border-top: 1px solid var(--hairline-2);
+  padding: 11px 16px;
+  vertical-align: top;
+}
+.md-typeset table:not([class]) tr:hover { background-color: var(--hover-fill); }
+/* First-column labels that are code read as mono teal-ink (param-table look). */
+.md-typeset table:not([class]) td:first-child code {
+  color: var(--accent-ink);
+  background-color: transparent;
+  padding-left: 0;
+}
+
+/* ----------------------------------------------------------------------------
+   Right TOC ("On this page") — muted header, 2px teal active rail.
+   ---------------------------------------------------------------------------- */
+.md-nav--secondary .md-nav__title {
+  font: 600 13.5px/1.4 var(--md-text-font-family);   /* unified with the left sidebar: same font + size + weight */
+  letter-spacing: normal;
+  color: var(--ink-body);                            /* match the sidebar header (was muted #8A8B93) */
+  padding: 6px 10px;                                 /* 6px top aligns the baseline; 10px left matches the items */
+}
+/* The TOC adopts the sidebar's selection style: a filled rounded pill on the active
+   item (no left rail / guide line), driven by the shared .md-nav__link--active rule
+   above (accent-tint fill + accent-ink + bold). Items match the sidebar's box. */
+.md-nav--secondary .md-nav__link {
+  font-size: 13.5px;
+  color: var(--ink-body);
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.md-nav--secondary .md-nav__link:hover { background-color: var(--hover-fill); color: var(--ink-heading); }
+
+/* ----------------------------------------------------------------------------
+   Footer pager — bordered prev/next cards.
+   ---------------------------------------------------------------------------- */
+.md-footer__inner.md-grid { gap: 14px; padding: 0.6rem 0.8rem; }
+.md-footer__link {
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 15px 17px;
+  background-color: var(--panel);
+  opacity: 1;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.md-footer__link:hover { border-color: #C9C6BF; box-shadow: 0 2px 10px rgba(26, 27, 34, 0.05); }
+.md-footer__title { background: transparent; }
+.md-footer__direction { font: 11px/1.4 var(--md-code-font-family); color: var(--ink-muted); opacity: 1; }
+.md-footer__title > .md-ellipsis { font-size: 15px; font-weight: 600; color: var(--accent); }
+.md-footer__button.md-icon { color: var(--ink-muted); }
+
+/* Footer meta strip. */
+.md-footer-meta { background-color: var(--hover-fill); border-top: 1px solid var(--hairline); }
+.md-footer-meta__inner { font-size: 12.5px; }
+.md-footer-meta, .md-footer-meta .md-footer__link, .md-copyright { color: var(--ink-muted); }
+.md-footer-meta a { color: var(--accent-ink); }
+
+/* ----------------------------------------------------------------------------
+   Scrollbars inside code (subtle, warm).
+   ---------------------------------------------------------------------------- */
+.md-typeset pre > code::-webkit-scrollbar { height: 10px; width: 10px; }
+.md-typeset pre > code::-webkit-scrollbar-thumb { background-color: #D8D5CE; border-radius: 99px; }
+.md-typeset pre > code::-webkit-scrollbar-track { background-color: transparent; }

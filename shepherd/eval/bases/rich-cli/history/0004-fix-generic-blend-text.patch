@@ -1,0 +1,25 @@
+From 0e237ec4302f63b55609b21a1a487d097b8768f7 Mon Sep 17 00:00:00 2001
+From: DidierRLopes <dro.lopes@campus.fct.unl.pt>
+Date: Thu, 12 May 2022 12:00:54 +0100
+Subject: [PATCH 04/14] fix generic blend text
+
+---
+ src/rich_cli/__main__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 5fcdc7b..4a5eb32 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -155,7 +155,7 @@ def blend_text(
+     size = len(text)
+     for index in range(size):
+         blend = index / size
+-        color = f"#{int(r1 + dr * blend):2X}{int(g1 + dg * blend):2X}{int(b1 + db * blend):2X}"
++        color = f"#{int(r1 + dr * blend):02X}{int(g1 + dg * blend):02X}{int(b1 + db * blend):02X}"
+         text.stylize(color, index, index + 1)
+     return text
+ 
+-- 
+2.50.1 (Apple Git-155)
+

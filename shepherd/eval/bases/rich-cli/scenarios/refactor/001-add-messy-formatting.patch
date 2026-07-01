@@ -1,0 +1,176 @@
+From 2d0f863768abc94e312458b0de9bc71e9e03743c Mon Sep 17 00:00:00 2001
+From: Derek Chong <dc@derekchong.com>
+Date: Mon, 22 Dec 2025 12:14:42 -0800
+Subject: [PATCH] Add duplicated formatting code (refactoring target)
+
+This patch adds duplicated formatting logic to create an obvious
+need for refactoring. The code works but violates DRY principles.
+
+Issues that should be addressed during refactoring:
+- Multiple JSON formatters doing nearly identical things
+- Timestamp formatting duplicated with different formats
+- Table formatting duplicates Rich's built-in Table functionality
+- Functions should be extracted to src/rich_cli/formatters.py
+- Should use a Formatter base class with concrete implementations
+---
+ src/rich_cli/__main__.py | 141 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 140 insertions(+), 1 deletion(-)
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 98df6bb..22d55ef 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -1,6 +1,8 @@
+ from operator import itemgetter
++import json
+ import sys
+-from typing import TYPE_CHECKING, List, NoReturn, Optional, Tuple
++from datetime import datetime
++from typing import TYPE_CHECKING, Any, List, NoReturn, Optional, Tuple
+ 
+ import click
+ from pygments.util import ClassNotFound
+@@ -937,3 +939,140 @@ def run():
+ 
+ if __name__ == "__main__":
+     run()
++
++
++# =============================================================================
++# DUPLICATED FORMATTING CODE - Needs refactoring!
++# =============================================================================
++# This code duplicates logic that already exists elsewhere in the codebase.
++# It was added for a "quick fix" but should be extracted to a proper formatters.py module.
++# Issues:
++# - Duplicates JSON formatting logic from render_ipynb and other places
++# - Multiple functions doing nearly identical things
++# - Timestamp formatting should be configurable
++# - Table formatting duplicates Rich's Table functionality
++# =============================================================================
++
++
++def format_json_output_legacy(data: Any, indent: int = 2) -> str:
++    """Format data as JSON string.
++
++    This function duplicates logic that exists elsewhere in the codebase.
++    It was added during a quick feature addition and should be refactored.
++    """
++    try:
++        if isinstance(data, str):
++            # Try to parse if it's already a JSON string
++            parsed = json.loads(data)
++            return json.dumps(parsed, indent=indent, ensure_ascii=False)
++        return json.dumps(data, indent=indent, ensure_ascii=False)
++    except json.JSONDecodeError:
++        return str(data)
++
++
++def format_json_output_v2(data: Any, pretty: bool = True) -> str:
++    """Another JSON formatter - almost identical to format_json_output_legacy.
++
++    This was added when someone needed sorted keys but didn't realize
++    the legacy function existed. Classic code duplication.
++    """
++    indent_val = 2 if pretty else None
++    try:
++        if isinstance(data, str):
++            parsed = json.loads(data)
++            return json.dumps(parsed, indent=indent_val, sort_keys=True)
++        return json.dumps(data, indent=indent_val, sort_keys=True)
++    except json.JSONDecodeError:
++        return str(data)
++
++
++def format_json_compact(data: Any) -> str:
++    """Yet another JSON formatter for compact output.
++
++    This is basically format_json_output_v2 with pretty=False, but someone
++    created a new function instead of using the existing one.
++    """
++    try:
++        if isinstance(data, str):
++            parsed = json.loads(data)
++            return json.dumps(parsed, separators=(",", ":"))
++        return json.dumps(data, separators=(",", ":"))
++    except json.JSONDecodeError:
++        return str(data)
++
++
++def format_with_timestamp(data: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
++    """Add timestamp prefix to output.
++
++    This should be part of a formatter class, not a standalone function.
++    The format string is hardcoded and not configurable through the CLI.
++    """
++    timestamp = datetime.now().strftime(fmt)
++    return f"[{timestamp}] {data}"
++
++
++def format_with_iso_timestamp(data: str) -> str:
++    """Add ISO format timestamp - duplicates format_with_timestamp.
++
++    Someone needed ISO format and created a new function instead of
++    making the format configurable in format_with_timestamp.
++    """
++    timestamp = datetime.now().isoformat()
++    return f"[{timestamp}] {data}"
++
++
++def format_as_table_legacy(data: list, headers: list) -> str:
++    """Format data as ASCII table.
++
++    This completely duplicates Rich's Table functionality.
++    There's no reason for this to exist - we should use Rich's Table.
++    """
++    if not data:
++        return ""
++    if not headers:
++        return ""
++
++    # Calculate column widths - inefficient, iterates multiple times
++    widths = [len(str(h)) for h in headers]
++    for row in data:
++        for i, cell in enumerate(row):
++            if i < len(widths):
++                widths[i] = max(widths[i], len(str(cell)))
++
++    # Build separator line
++    separator = "-+-".join("-" * w for w in widths)
++
++    # Build header line
++    header_line = " | ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers))
++
++    # Build data lines
++    lines = [header_line, separator]
++    for row in data:
++        row_line = " | ".join(
++            str(cell).ljust(widths[i]) if i < len(widths) else str(cell)
++            for i, cell in enumerate(row)
++        )
++        lines.append(row_line)
++
++    return "\n".join(lines)
++
++
++def format_as_simple_table(data: list) -> str:
++    """Even simpler table formatter - also duplicates Rich's Table.
++
++    This was added because someone thought format_as_table_legacy
++    was "too complex" for their use case.
++    """
++    if not data:
++        return ""
++
++    lines = []
++    for row in data:
++        lines.append("\t".join(str(cell) for cell in row))
++
++    return "\n".join(lines)
++
++
++# END DUPLICATED CODE
++# All of the above should be refactored into src/rich_cli/formatters.py
++# with a proper Formatter base class and specific implementations.
+-- 
+2.50.1 (Apple Git-155)
+

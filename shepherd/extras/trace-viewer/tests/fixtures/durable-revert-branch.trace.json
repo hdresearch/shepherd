@@ -1,0 +1,75 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "scope:main",
+  "frontier_id": "frontier:revert-branch-demo",
+  "run_ref": "run-revert-branch",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "event-1",
+      "kind": "execution.started",
+      "name": "start parent task"
+    },
+    {
+      "id": "event-2",
+      "kind": "state.checkpoint",
+      "name": "known good state"
+    },
+    {
+      "id": "event-3",
+      "kind": "attempt.started",
+      "name": "try first approach"
+    },
+    {
+      "id": "event-4",
+      "kind": "check.failed",
+      "name": "first approach failed"
+    },
+    {
+      "id": "event-5",
+      "kind": "revert.requested",
+      "name": "revert to known good state"
+    },
+    {
+      "id": "event-6",
+      "kind": "branch.created",
+      "name": "branch from known good state"
+    },
+    {
+      "id": "event-7",
+      "kind": "attempt.started",
+      "name": "try replacement approach"
+    },
+    {
+      "id": "event-8",
+      "kind": "execution.completed",
+      "name": "replacement completed"
+    }
+  ],
+  "causal_edges": [
+    ["event-1", "event-2"],
+    ["event-2", "event-3"],
+    ["event-3", "event-4"],
+    ["event-4", "event-5"],
+    ["event-2", "event-6"],
+    ["event-5", "event-6"],
+    ["event-6", "event-7"],
+    ["event-7", "event-8"]
+  ],
+  "owner_paths": {
+    "scope:main": [
+      "event-1",
+      "event-2",
+      "event-3",
+      "event-4",
+      "event-5"
+    ],
+    "scope:replacement": [
+      "event-6",
+      "event-7",
+      "event-8"
+    ]
+  }
+}

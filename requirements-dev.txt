@@ -1,0 +1,14 @@
+# Local editable install path for the v0.1.2 getting-started surface.
+#
+# This intentionally avoids the published PyPI names until the internal
+# dependency closure is safely namespaced/published.
+-e ./commons-vcs
+-e ./vcs-core/packages/core
+-e ./shepherd2
+-e ./shepherd/packages/kernel-v3-reference
+-e ./shepherd/packages/core
+-e ./shepherd/packages/runtime
+-e ./shepherd/packages/export
+-e ./shepherd/packages/dialect
+-e ./shepherd/packages/providers
+-e ./shepherd/packages/meta

@@ -1,0 +1,6 @@
+# Expected-forward allowlist + migration-context marker enumeration (DESIGN 1.8).
+# One path-or-pattern per line; comment names the owning PR / reason.
+# Phase-4 end state: forward entries gone; marker enumeration may remain.
+
+# Pages allowed to carry `> Stale-names: migration-context` (cite Shepherd-era paths by design):
+reference/source-state.md   # the inventory's job is to document the pre-rename sources

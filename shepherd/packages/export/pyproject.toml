@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-export"
+version = "0.1.0a1"
+description = "Public trajectory export and import surfaces for the Shepherd framework"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = [
+    "shepherd-core>=2.0.0a1,<3.0.0",
+]
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<9.0.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.uv.sources]
+shepherd-core = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_export"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+
+# Ruff: see ruff.toml at workspace root.

@@ -1,0 +1,89 @@
+{
+  "candidate_commits": [
+    {
+      "binding": "workspace",
+      "candidate_commit_digest": "sha256:<DIGEST>",
+      "candidate_head": "<OID>",
+      "candidate_id": "primary",
+      "candidate_ref": "refs/vcscore/candidates/b64u_b3AtMQ/b64u_d29ya3NwYWNl/b64u_cHJpbWFyeQ",
+      "operation_id": "op-1",
+      "resource_id": "fs:repo-main",
+      "revision_preparation_digest": "sha256:<DIGEST>",
+      "schema": "vcscore/candidate-commit/v1",
+      "store_id": "store_workspace"
+    }
+  ],
+  "candidate_outcomes": [
+    {
+      "binding": "workspace",
+      "candidate": "<OID>",
+      "candidate_commit_digest": "sha256:<DIGEST>",
+      "content_digest": "sha256:<DIGEST>",
+      "evidence_digests": [
+        "sha256:<DIGEST>"
+      ],
+      "evidence_refs": [
+        {
+          "evidence_digest": "sha256:<DIGEST>",
+          "payload_digest": "sha256:<DIGEST>",
+          "record_digest": "sha256:<DIGEST>",
+          "ref": "refs/vcscore/evidence/b64u_b3AtMQ/<DIGEST>"
+        }
+      ],
+      "outcome": "selected",
+      "resource_id": "fs:repo-main",
+      "revision_plan_digest": "sha256:<DIGEST>",
+      "revision_preparation_digest": "sha256:<DIGEST>",
+      "store_id": "store_workspace",
+      "transition_digest": "sha256:<DIGEST>"
+    }
+  ],
+  "head_selections": [
+    {
+      "binding": "workspace",
+      "relationship_requirements": [],
+      "resource_id": "fs:repo-main",
+      "retention_policy_requirements": [
+        {
+          "kind": "selected-head-pin",
+          "target": "<OID>"
+        }
+      ],
+      "schema": "vcscore/head-selection/v1",
+      "selected_from": null,
+      "selected_head": "<OID>",
+      "selection_digest": "sha256:<DIGEST>",
+      "selection_kind": "new-candidate",
+      "selection_policy_digest": "sha256:<DIGEST>",
+      "store_id": "store_workspace"
+    }
+  ],
+  "operation_id": "op-1",
+  "schema": "vcscore/operation-final/v2",
+  "selected": {
+    "workspace": "<OID>"
+  },
+  "selection_evidence": [
+    {
+      "binding": "workspace",
+      "candidate_commit_digest": "sha256:<DIGEST>",
+      "candidate_ref": "refs/vcscore/candidates/b64u_b3AtMQ/b64u_d29ya3NwYWNl/b64u_cHJpbWFyeQ",
+      "evidence_refs": [],
+      "operation_id": "op-1",
+      "producer_operation_id": "op-1",
+      "resource_id": "fs:repo-main",
+      "retention_policy_requirements": [
+        {
+          "kind": "selected-head-pin",
+          "target": "<OID>"
+        }
+      ],
+      "revision_preparation_digest": "sha256:<DIGEST>",
+      "schema": "vcscore/head-selection-evidence/v1",
+      "selected_head": "<OID>",
+      "selection_digest": "sha256:<DIGEST>",
+      "selection_evidence_digest": "sha256:<DIGEST>",
+      "store_id": "store_workspace"
+    }
+  ]
+}

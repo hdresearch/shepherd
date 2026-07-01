@@ -1,0 +1,77 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "01_pure_let_chain",
+  "kind": "positive",
+  "description": "Pure let-chain with no effects; admits cleanly and completes with the bound value.",
+  "covers": [
+    "Let",
+    "Return",
+    "Lit",
+    "Var"
+  ],
+  "input": {
+    "program": {
+      "node": "Let",
+      "name": "x",
+      "bound": {
+        "node": "Return",
+        "expr": {
+          "node": "Lit",
+          "value": 1
+        }
+      },
+      "body": {
+        "node": "Let",
+        "name": "y",
+        "bound": {
+          "node": "Return",
+          "expr": {
+            "node": "Lit",
+            "value": 2
+          }
+        },
+        "body": {
+          "node": "Return",
+          "expr": {
+            "node": "Var",
+            "name": "x"
+          }
+        }
+      }
+    },
+    "observations": []
+  },
+  "expected": {
+    "envelope_status": "completed",
+    "completed_value": 1,
+    "batches": [
+      {
+        "transition_id": "kernel-replay-transition:sha256:a4f838e33b267eafa2762d8806d218290dbe922b06b3a80cd7e425c6ed2d760b",
+        "idempotency_key": "idempotency:kernel-replay-transition:sha256:a4f838e33b267eafa2762d8806d218290dbe922b06b3a80cd7e425c6ed2d760b",
+        "transition_kind": "initial_run_prefix",
+        "admission_basis": null,
+        "profile": "core_reference_v0_lite",
+        "program_ref": "program:sha256:623bb177e4575d22292309d49c6396d092ea1694eef4596ffc5ba2d859f18d1f",
+        "parent_transition_refs": [],
+        "records": [],
+        "ref_map": {
+          "entries": [],
+          "map_schema_version": "shepherd_kernel_v3_reference.canonical-ref-map.v1"
+        },
+        "continuation_objects": [],
+        "external_evidence_links": [],
+        "semantic_context": {},
+        "batch_schema_version": "shepherd_kernel_v3_reference.semantic-transition-batch.v2",
+        "kernel_version": "shepherd_kernel_v3_reference.semantic-kernel.v0",
+        "trace_record_schema_versions": [
+          "shepherd_kernel_v3_reference.trace-records.v0"
+        ],
+        "continuation_object_schema_version": "shepherd_kernel_v3_reference.continuation-object.v5",
+        "external_evidence_link_schema_version": "shepherd_kernel_v3_reference.external-evidence-link.v0",
+        "schema_refs": [],
+        "code_identity_refs": []
+      }
+    ]
+  }
+}

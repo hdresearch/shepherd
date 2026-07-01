@@ -1,0 +1,16 @@
+"""Shepherd {{title}} - {{description}}."""
+
+from __future__ import annotations
+
+from shepherd_core.package import package
+
+__version__ = "0.1.0a1"
+
+
+@package(
+    name="{{name}}",
+    version=__version__,
+    tasks=["shepherd_{{module_name}}"],
+)
+def {{module_name}}() -> None:
+    """{{description}}"""

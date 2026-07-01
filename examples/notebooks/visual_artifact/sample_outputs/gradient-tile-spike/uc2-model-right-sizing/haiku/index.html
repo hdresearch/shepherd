@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradient Descent</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #0f1226;
+    overflow: hidden;
+  }
+  .tile {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="tile">
+  <svg viewBox="0 0 1200 900" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#171a36"/>
+        <stop offset="1" stop-color="#0d1024"/>
+      </linearGradient>
+      <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#7a6ff0" stop-opacity="0.55"/>
+        <stop offset="1" stop-color="#7a6ff0" stop-opacity="0.05"/>
+      </linearGradient>
+      <linearGradient id="warm" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#ef6f6c"/>
+        <stop offset="1" stop-color="#ffb35c"/>
+      </linearGradient>
+      <marker id="arrow" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M1,1 L11,6 L1,11 Z" fill="#ef6f6c"/>
+      </marker>
+      <radialGradient id="minGlow" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="#7a6ff0" stop-opacity="0.9"/>
+        <stop offset="1" stop-color="#7a6ff0" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Background -->
+    <rect x="0" y="0" width="1200" height="900" fill="url(#bg)"/>
+
+    <!-- Title -->
+    <text x="80" y="110" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="62" font-weight="700" fill="#f4f3ff">Gradient Descent</text>
+
+    <!-- Axes -->
+    <line x1="120" y1="760" x2="1120" y2="760" stroke="#3a3f63" stroke-width="3"/>
+    <line x1="120" y1="760" x2="120" y2="220" stroke="#3a3f63" stroke-width="3"/>
+
+    <!-- Loss bowl (parabola) -->
+    <path d="M 160 280
+             Q 620 1180 1080 280
+             L 1080 760
+             L 160 760 Z" fill="url(#bowl)"/>
+    <path d="M 160 280 Q 620 1180 1080 280" fill="none" stroke="#9b92ff" stroke-width="6" stroke-linecap="round"/>
+
+    <!-- Minimum point at bottom of bowl -->
+    <circle cx="620" cy="710" r="46" fill="url(#minGlow)"/>
+    <circle cx="620" cy="710" r="15" fill="#7a6ff0" stroke="#f4f3ff" stroke-width="4"/>
+    <text x="620" y="700" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#cfc9ff" transform="translate(0,80)">Minimum</text>
+
+    <!-- WRONG-DIRECTION ascending arrows: thick warm arrows climbing UP and AWAY from the minimum -->
+    <!-- Left flank climbing up-left -->
+    <g stroke="url(#warm)" stroke-width="18" fill="none" stroke-linecap="round" marker-end="url(#arrow)">
+      <path d="M 560 690 L 470 560"/>
+      <path d="M 460 545 L 360 430"/>
+      <path d="M 350 415 L 240 300"/>
+    </g>
+    <!-- Right flank climbing up-right -->
+    <g stroke="url(#warm)" stroke-width="18" fill="none" stroke-linecap="round" marker-end="url(#arrow)">
+      <path d="M 680 690 L 770 560"/>
+      <path d="M 780 545 L 880 430"/>
+      <path d="M 890 415 L 1000 300"/>
+    </g>
+
+    <!-- Start marker near the minimum -->
+    <circle cx="620" cy="688" r="12" fill="#ffb35c" stroke="#0f1226" stroke-width="3"/>
+    <text x="620" y="650" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="32" font-weight="600" fill="#ffd9a8">Start</text>
+
+    <!-- Step label on one of the ascending arrows -->
+    <text x="300" y="380" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="32" font-weight="600" fill="#ffb6b4" transform="rotate(-46 300 380)">Step</text>
+
+    <!-- Caption -->
+    <text x="80" y="850" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="36" font-weight="500" fill="#bfc2e0">Small downhill steps reduce error.</text>
+  </svg>
+</div>
+</body>
+</html>

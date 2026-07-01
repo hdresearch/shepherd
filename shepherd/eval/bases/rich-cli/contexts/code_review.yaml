@@ -1,0 +1,23 @@
+# Code Review Context
+# Scenario: Review PR adding --quiet flag
+#
+# Prerequisites:
+#   1. Generate scenario: python fixtures/generate.py scenario rich-cli/code_review ./workspace
+#   2. Checkout branch: cd workspace && git checkout review/add-quiet-mode
+#
+# Run with:
+#   ai-runner run pipelines.code_review:main --context fixtures/bases/rich-cli/contexts/code_review.yaml
+#
+# Expected: Agent should identify issues documented in expected_issues.md
+
+source:
+  type: local
+  path: ./workspace
+
+params:
+  review_focus: "quiet-mode-pr"
+  scenario: "code_review"
+
+# Note: artifact paths are relative to this context file's location
+artifacts:
+  expected_issues.md: ../../../workspace/.ai-runner/scenario/expected_issues.md

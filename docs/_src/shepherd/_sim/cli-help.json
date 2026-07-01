@@ -1,0 +1,18 @@
+{
+  "_comment": "SIMULATED capture of `shepherd --help` output (surface). A checked fixture standing in for the unshipped CLI so the generate+drift pipeline is exercised end-to-end. Re-capture from the real CLI when it ships (DESIGN Phase 3).",
+  "captured": "simulated (spec)",
+  "commands": [
+    {
+      "name": "shepherd",
+      "help": "Usage: shepherd [OPTIONS] COMMAND [ARGS]...\n\n Build and run agent systems.\n\nCommands:\n init Create or update project configuration.\n doctor Report providers, placements, and capability gaps.\n demo Run the packaged first-run demo (--offline by default).\n provider List, show, login, and check model providers.\n placement List, show, check, and configure runnable environments.\n workflow List, show, install, configure, and run packaged workflows.\n run Run a task or workflow by id.\n runs List and inspect recorded runs."
+    },
+    {
+      "name": "shepherd demo",
+      "help": "Usage: shepherd demo [--offline]\n\n Run the packaged first-run demo.\n\n --offline Use the deterministic offline provider (no credentials, no cost)."
+    },
+    {
+      "name": "shepherd workflow",
+      "help": "Usage: shepherd workflow COMMAND [ARGS]...\n\nCommands:\n list List installed workflow manifests. [--json]\n show Show one workflow's manifest. [--json]\n install Install a workflow package from PyPI.\n configure Write project/local workflow configuration.\n run Run a workflow by canonical id."
+    }
+  ]
+}

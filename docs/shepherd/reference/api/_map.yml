@@ -1,0 +1,14 @@
+# Curated symbol map (DESIGN §5.3, C2) — INPUT to gen_shepherd_ref_pages.py.
+# Hand-maintained; absent entries simply omit the See-also block.
+task:        { concept: concepts/tasks.md, guide: tutorials/first-shepherd-app.md }
+workspace:   { concept: concepts/workspaces.md, guide: tutorials/first-shepherd-app.md }
+Workspace:   { concept: concepts/workspaces.md }
+deliver:     { concept: concepts/tasks.md }
+ask:         { concept: concepts/effects.md }
+tell:        { concept: concepts/effects.md }
+handle:      { concept: concepts/effects.md }
+Run:         { concept: concepts/runs.md }
+RunRef:      { concept: concepts/runs.md }
+Artifact:    { concept: concepts/runs.md }
+emit_artifact: { concept: concepts/runs.md }
+DeliveryFailed: { concept: concepts/tasks.md, guide: guides/debug-your-first-run.md }

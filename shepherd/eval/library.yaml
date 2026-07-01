@@ -1,0 +1,22 @@
+# Scenario Library Registry
+# -------------------------
+# Central index of all available base projects and template scenarios.
+#
+# Usage:
+#   uv run python shepherd/eval/generate.py list bases
+#   uv run python shepherd/eval/generate.py list scenarios --base rich-cli
+#   uv run python shepherd/eval/generate.py scenario rich-cli/fix_bug ./workspace
+
+version: "1.0"
+
+# Base projects available for scenario generation
+bases:
+  rich-cli:
+    path: bases/rich-cli
+    description: "Rich-CLI: command-line toolbox for Rich (~1.5k lines Python)"
+    language: python
+    size: small  # small (<5k LOC), medium (5-20k), large (>20k)
+
+# Generic template scenarios (apply to any project, no patches)
+templates:
+  - tdd_feature

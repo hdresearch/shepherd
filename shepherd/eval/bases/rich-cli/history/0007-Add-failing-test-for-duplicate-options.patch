@@ -1,0 +1,65 @@
+From 440a244d054f37da24b6d19916ae553180b4665f Mon Sep 17 00:00:00 2001
+From: Ed Rogers <edwin.rogers@gmail.com>
+Date: Fri, 21 Oct 2022 15:54:56 -0500
+Subject: [PATCH 07/14] Add failing test for duplicate options
+
+---
+ tests/__init.py__  |  0
+ tests/test_main.py | 41 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
+ create mode 100644 tests/__init.py__
+ create mode 100644 tests/test_main.py
+
+diff --git a/tests/__init.py__ b/tests/__init.py__
+new file mode 100644
+index 0000000..e69de29
+diff --git a/tests/test_main.py b/tests/test_main.py
+new file mode 100644
+index 0000000..b99623f
+--- /dev/null
++++ b/tests/test_main.py
+@@ -0,0 +1,41 @@
++import click
++from click import Command
++from click.decorators import FC, Parameter
++from click.testing import CliRunner
++
++
++class DuplicateOptionsError(ValueError):
++    pass
++
++
++def test_duplicate_option_flags_raises_exception(monkeypatch):
++    """Create a test that will monkeypatch the click.option decorators
++    so that they fail noisily when options are duplicated for a command
++    """
++
++    def _param_memo_safe(f: FC, param: Parameter) -> None:
++        if isinstance(f, Command):
++            f.params.append(param)
++        else:
++            if not hasattr(f, "__click_params__"):
++                f.__click_params__ = []  # type: ignore
++            else:
++                for opt in param.opts:
++                    for preexisting_param in f.__click_params__:
++                        if opt in preexisting_param.opts:
++                            raise DuplicateOptionsError(
++                                "Duplicate option added to command."
++                                + " The following option appears more than once:\n"
++                                + f"{opt} (used for {param.human_readable_name}"
++                                + f" and {preexisting_param.human_readable_name})"
++                            )
++
++            f.__click_params__.append(param)  # type: ignore
++
++    monkeypatch.setattr(click.decorators, "_param_memo", _param_memo_safe)
++
++    # import here (after monkeypatch) because decorators are run on import
++    from src.rich_cli.__main__ import main
++
++    runner = CliRunner()
++    runner.invoke(main)
+-- 
+2.50.1 (Apple Git-155)
+

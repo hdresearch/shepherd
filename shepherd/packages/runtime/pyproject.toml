@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-runtime"
+version = "0.1.0a1"
+description = "Public runtime surfaces for the Shepherd framework"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "shepherd-core>=2.0.0a1,<3.0.0",
+    "shepherd-kernel-v3-reference>=0.1.0a1,<1.0.0",
+]
+
+[project.optional-dependencies]
+secure = [
+    "RestrictedPython>=7.0,<8.0",
+]
+persistence = [
+    "filelock>=3.0",
+]
+
+[dependency-groups]
+lint = ["ruff>=0.5.0,<1.0.0"]
+test = [
+    "shepherd-contexts>=1.0.0a1,<2.0.0",
+    "shepherd-tests>=1.0.0a1,<2.0.0",
+    "hypothesis>=6.100.0,<7.0.0",
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.uv.sources]
+shepherd-core = { workspace = true }
+shepherd-contexts = { workspace = true }
+shepherd-kernel-v3-reference = { workspace = true }
+shepherd-tests = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_runtime"]
+
+[tool.mypy]
+strict = true
+namespace_packages = true
+explicit_package_bases = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --durations=5 -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (>1s execution time)",
+    "integration: marks tests requiring external resources or network",
+    "container: marks tests requiring Podman/container runtime",
+    "vm_overlay: marks tests requiring macOS Podman Machine with VM overlay",
+    "e2e: marks end-to-end tests that run actual containers",
+    "benchmark: marks performance benchmark tests",
+    "property: marks tests as property-based tests using Hypothesis",
+    "spike: marks exploratory/documentation tests (not regression tests)",
+    "requires: marks tests as requiring a specific library",
+]

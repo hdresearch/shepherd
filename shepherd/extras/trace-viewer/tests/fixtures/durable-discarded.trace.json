@@ -1,0 +1,46 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "task:pkg.mod:run:run-discarded",
+  "frontier_id": "frontier:run-discarded",
+  "run_ref": "run-discarded",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "task-invocation",
+      "kind": "task.invocation",
+      "identity_domain": "shepherd.kernel.canonical.v2",
+      "record_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+      "body": {
+        "task_id": "pkg.mod:failing",
+        "args_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "may_profile": "Permissive"
+      }
+    },
+    {
+      "id": "workspace-transition",
+      "kind": "substrate.transition",
+      "binding": "workspace",
+      "head_from": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "head_to": null,
+      "semantic_op": "run",
+      "operation_id": "op-discarded"
+    },
+    {
+      "id": "run-lifecycle",
+      "kind": "run.lifecycle",
+      "transition": "failed",
+      "terminal_status": "discarded",
+      "may_profile": "Permissive",
+      "may_source": "declared"
+    }
+  ],
+  "causal_edges": [
+    ["task-invocation", "workspace-transition"],
+    ["workspace-transition", "run-lifecycle"]
+  ],
+  "owner_paths": {
+    "task:pkg.mod:run:run-discarded": ["task-invocation", "workspace-transition", "run-lifecycle"]
+  }
+}

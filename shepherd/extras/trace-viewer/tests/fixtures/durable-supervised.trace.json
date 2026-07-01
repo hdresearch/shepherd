@@ -1,0 +1,67 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "task:pkg.mod:run:run-supervised",
+  "frontier_id": "frontier:run-supervised",
+  "run_ref": "run-supervised",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "task-invocation",
+      "kind": "task.invocation",
+      "identity_domain": "shepherd.kernel.canonical.v2",
+      "record_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+      "body": {
+        "task_id": "pkg.mod:update_readme",
+        "args_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "may_profile": "Permissive"
+      }
+    },
+    {
+      "id": "decision-1",
+      "kind": "supervisor.decision",
+      "decision": "approved",
+      "op": "FileCreate",
+      "path": "README.md"
+    },
+    {
+      "id": "file-create",
+      "kind": "FileCreate",
+      "path": "README.md",
+      "bytes": 420
+    },
+    {
+      "id": "workspace-transition",
+      "kind": "substrate.transition",
+      "binding": "workspace",
+      "head_from": "cccccccccccccccccccccccccccccccccccccccc",
+      "head_to": "dddddddddddddddddddddddddddddddddddddddd",
+      "semantic_op": "run",
+      "operation_id": "op-supervised"
+    },
+    {
+      "id": "run-lifecycle",
+      "kind": "run.lifecycle",
+      "transition": "finished",
+      "terminal_status": "merged",
+      "may_profile": "Permissive",
+      "may_source": "declared"
+    }
+  ],
+  "causal_edges": [
+    ["task-invocation", "decision-1"],
+    ["decision-1", "file-create"],
+    ["file-create", "workspace-transition"],
+    ["workspace-transition", "run-lifecycle"]
+  ],
+  "owner_paths": {
+    "task:pkg.mod:run:run-supervised": [
+      "task-invocation",
+      "decision-1",
+      "file-create",
+      "workspace-transition",
+      "run-lifecycle"
+    ]
+  }
+}

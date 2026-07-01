@@ -1,0 +1,37 @@
+{"type": "system", "message": "Claude Code session started", "timestamp": "2024-06-15T10:00:00Z"}
+{"type": "human", "message": "Fix the SSL certificate in /app/ssl", "timestamp": "2024-06-15T10:00:01Z"}
+{
+    "type": "assistant",
+    "message": "I'll check and fix the SSL certificate.",
+    "timestamp": "2024-06-15T10:00:05Z",
+    "tool_use": [{"id": "tc_001", "name": "bash", "input": {"command": "openssl x509 -in /app/ssl/cert.pem -text"}}],
+}
+{
+    "type": "tool_result",
+    "tool_use_id": "tc_001",
+    "content": "Certificate: expired 2024-01-01",
+    "timestamp": "2024-06-15T10:00:10Z",
+}
+{
+    "type": "assistant",
+    "message": "The certificate is expired. Regenerating now.",
+    "timestamp": "2024-06-15T10:00:12Z",
+    "tool_use": [
+        {
+            "id": "tc_002",
+            "name": "bash",
+            "input": {"command": "openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes"},
+        }
+    ],
+}
+{
+    "type": "tool_result",
+    "tool_use_id": "tc_002",
+    "content": "Certificate generated successfully",
+    "timestamp": "2024-06-15T10:00:20Z",
+}
+{
+    "type": "assistant",
+    "message": "SSL certificate has been regenerated. The new cert is valid for 365 days.",
+    "timestamp": "2024-06-15T10:00:22Z",
+}

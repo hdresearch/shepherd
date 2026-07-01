@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradient Descent</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #f4f7fb;
+    overflow: hidden;
+  }
+  .tile {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div class="tile">
+  <svg viewBox="0 0 1200 900" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif">
+    <defs>
+      <!-- background gradient -->
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fbfdff"/>
+        <stop offset="1" stop-color="#e9f0f8"/>
+      </linearGradient>
+      <!-- radial fill for contour bowl: light at rim, accent toward center -->
+      <radialGradient id="bowl" cx="50%" cy="50%" r="60%">
+        <stop offset="0"   stop-color="#3f7fca" stop-opacity="0.55"/>
+        <stop offset="0.45" stop-color="#3f7fca" stop-opacity="0.28"/>
+        <stop offset="1"   stop-color="#3f7fca" stop-opacity="0.05"/>
+      </radialGradient>
+      <radialGradient id="minGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#d66a3f" stop-opacity="0.9"/>
+        <stop offset="1" stop-color="#d66a3f" stop-opacity="0"/>
+      </radialGradient>
+      <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5"
+              markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 L3,5 z" fill="#2f6bb0"/>
+      </marker>
+    </defs>
+
+    <!-- panel -->
+    <rect x="0" y="0" width="1200" height="900" fill="url(#bg)"/>
+    <rect x="40" y="40" width="1120" height="820" rx="26" fill="#ffffff" stroke="#dde6f0" stroke-width="2"/>
+
+    <!-- title -->
+    <text x="80" y="120" font-size="52" font-weight="700" fill="#1f3a5f">Gradient Descent</text>
+    <line x1="80" y1="146" x2="430" y2="146" stroke="#3f7fca" stroke-width="5" stroke-linecap="round"/>
+
+    <!-- contour map group: an elliptical bowl centered near (760,540) -->
+    <g transform="translate(760,540)">
+      <!-- filled bowl -->
+      <ellipse cx="0" cy="0" rx="340" ry="280" fill="url(#bowl)"/>
+      <!-- concentric contour rings -->
+      <ellipse cx="0" cy="0" rx="340" ry="280" fill="none" stroke="#9cc0e6" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="288" ry="236" fill="none" stroke="#88b2df" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="236" ry="192" fill="none" stroke="#74a4d8" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="184" ry="148" fill="none" stroke="#6098d2" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="132" ry="104" fill="none" stroke="#4d8bcd" stroke-width="2"/>
+      <ellipse cx="0" cy="0" rx="80"  ry="62"  fill="none" stroke="#3f7fca" stroke-width="2.5"/>
+      <ellipse cx="0" cy="0" rx="34"  ry="26"  fill="none" stroke="#3370bb" stroke-width="2.5"/>
+
+      <!-- minimum glow + marker -->
+      <circle cx="0" cy="0" r="60" fill="url(#minGlow)"/>
+      <circle cx="0" cy="0" r="11" fill="#d66a3f" stroke="#ffffff" stroke-width="3"/>
+      <text x="22" y="6" font-size="30" font-weight="600" fill="#b5532c">Minimum</text>
+
+      <!-- descent path: starts at top-left rim, steps inward toward minimum -->
+      <!-- step segments with arrowheads -->
+      <g stroke="#2f6bb0" stroke-width="6" fill="none" stroke-linecap="round" marker-end="url(#arrow)">
+        <line x1="-300" y1="-210" x2="-208" y2="-128"/>
+        <line x1="-208" y1="-128" x2="-128" y2="-78"/>
+        <line x1="-128" y1="-78"  x2="-66"  y2="-40"/>
+        <line x1="-66"  y1="-40"  x2="-26"  y2="-16"/>
+        <line x1="-26"  y1="-16"  x2="-6"   y2="-4"/>
+      </g>
+
+      <!-- step waypoint dots -->
+      <circle cx="-208" cy="-128" r="7" fill="#ffffff" stroke="#2f6bb0" stroke-width="3"/>
+      <circle cx="-128" cy="-78"  r="7" fill="#ffffff" stroke="#2f6bb0" stroke-width="3"/>
+      <circle cx="-66"  cy="-40"  r="7" fill="#ffffff" stroke="#2f6bb0" stroke-width="3"/>
+      <circle cx="-26"  cy="-16"  r="7" fill="#ffffff" stroke="#2f6bb0" stroke-width="3"/>
+
+      <!-- start marker -->
+      <circle cx="-300" cy="-210" r="12" fill="#2f6bb0" stroke="#ffffff" stroke-width="3"/>
+      <text x="-326" y="-228" font-size="30" font-weight="600" fill="#2f6bb0" text-anchor="end">Start</text>
+
+      <!-- step label on first segment -->
+      <text x="-150" y="-150" font-size="26" font-weight="600" fill="#2f6bb0">Step</text>
+    </g>
+
+    <!-- caption -->
+    <text x="80" y="800" font-size="34" font-weight="500" fill="#3a4a5e">Small downhill steps reduce error.</text>
+  </svg>
+</div>
+</body>
+</html>

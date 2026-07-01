@@ -1,0 +1,64 @@
+# pages.yml — the definition of every documentation page: what produces it, from
+# what, and how its code is validated. Source of truth the runbook describes in
+# prose. Layout follows (docs/shepherd/, docs/_src/shepherd/,
+# docs/_generated/shepherd/). Driver: `run.py pages`.
+#
+# Two producers:
+# reference — generated from the code; quality is set by the docstrings.
+# authored — written prose (draft -> fact-check -> readability -> sign-off).
+
+reference:
+  producer: reference
+  generate: scripts/gen_shepherd_ref_pages.py # one api page per public symbol
+  verify: scripts/gen_shepherd_api_inventory.py --check # drift gate
+  pages:
+    - docs/shepherd/reference/api/*.md # enumerated from the code facade (__all__)
+    - docs/shepherd/reference/cli.md # from `shepherd --help` (fixture until the CLI ships)
+
+authored:
+  # --- shipped/promoted (release-ready, public) ---
+  - {page: docs/shepherd/index.md, title: Home}
+  - {page: docs/shepherd/start/quickstart.md, title: Quickstart, code: docs/_src/shepherd/quickstart/hello.py, test: docs/_src/shepherd/quickstart/test_hello.py}
+  - {page: docs/shepherd/tutorials/first-shepherd-app.md, title: First Shepherd app, code: docs/_src/shepherd/tutorials/first_app/app.py, test: docs/_src/shepherd/tutorials/first_app/test_first_app.py}
+  - {page: docs/shepherd/concepts/tasks.md, title: Tasks}
+  - {page: docs/shepherd/reference/source-state.md, title: Source-state ledger}
+  - {page: docs/shepherd/workflows/index.md, title: Workflows (operator)}
+  # --- start / landing scaffolds ---
+  - {page: docs/shepherd/start/install.md, title: Install}
+  - {page: docs/shepherd/tutorials/index.md, title: Tutorials (landing)}
+  - {page: docs/shepherd/concepts/index.md, title: Concepts (landing)}
+  - {page: docs/shepherd/guides/index.md, title: Guides (landing)}
+  - {page: docs/shepherd/reference/index.md, title: Reference (landing)}
+  # --- concept scaffolds (paradigm) ---
+  - {page: docs/shepherd/concepts/effects.md, title: Effects}
+  - {page: docs/shepherd/concepts/runs.md, title: Runs}
+  - {page: docs/shepherd/concepts/workspaces.md, title: Workspaces}
+  # --- concept scaffolds (product surface) ---
+  - {page: docs/shepherd/concepts/providers.md, title: Providers}
+  - {page: docs/shepherd/concepts/placements.md, title: Placements}
+  - {page: docs/shepherd/concepts/runtime-substrate.md, title: Runtime substrate}
+  - {page: docs/shepherd/concepts/permissions.md, title: Permissions}
+  - {page: docs/shepherd/concepts/workflows.md, title: Workflows (concept)}
+  # --- guide scaffolds (list) ---
+  - {page: docs/shepherd/guides/configure-provider.md, title: Configure a provider}
+  - {page: docs/shepherd/guides/debug-your-first-run.md, title: Debug your first run}
+  - {page: docs/shepherd/guides/run-a-workflow.md, title: Run a workflow}
+  - {page: docs/shepherd/guides/package-a-workflow.md, title: Package a workflow}
+  - {page: docs/shepherd/guides/test-shepherd-code.md, title: Test Shepherd code}
+  - {page: docs/shepherd/guides/route-tasks-to-models.md, title: Route tasks to models}
+  - {page: docs/shepherd/guides/deterministic-demo.md, title: Deterministic demo}
+  - {page: docs/shepherd/guides/live-acceptance-demo.md, title: Live acceptance demo}
+  # --- reference scaffolds (required pages) ---
+  - {page: docs/shepherd/reference/python-api.md, title: Python API (curated entry)}
+  - {page: docs/shepherd/reference/project-manifest.md, title: Project manifest}
+  - {page: docs/shepherd/reference/workflow-manifest.md, title: Workflow manifest}
+  - {page: docs/shepherd/reference/capability-registry.md, title: Capability registry}
+  - {page: docs/shepherd/reference/provider-config.md, title: Provider config}
+  - {page: docs/shepherd/reference/config-resolution.md, title: Config resolution}
+  # --- workflow pages (per-workflow, fixture-backed) ---
+  - {page: docs/shepherd/workflows/authoring/pr-review.md, title: PR Review (workflow), fixture: docs/_src/shepherd/workflows/fixtures/pr-review.yaml}
+  - {page: docs/shepherd/workflows/authoring/design-refinement.md, title: Design refinement (workflow)}
+
+# Pages the nav implies but that don't exist yet — the commission backlog.
+commission:
+  - {page: docs/shepherd/tutorials/SECOND-TUTORIAL.md, title: "Tutorial 2+ (series)"}

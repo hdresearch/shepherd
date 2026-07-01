@@ -1,0 +1,25 @@
+From 9e44bc0be5aba69f676dbb88c036d19e93674f4e Mon Sep 17 00:00:00 2001
+From: Ed Rogers <edwin.rogers@gmail.com>
+Date: Fri, 21 Oct 2022 15:56:26 -0500
+Subject: [PATCH 08/14] Change emoji option to capital J
+
+---
+ src/rich_cli/__main__.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index aa0a068..911bb08 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -278,7 +278,7 @@ class RichCommand(click.Command):
+     help="Display last [b]LINES[/] of the file (requires --syntax or --csv).",
+ )
+ @click.option(
+-    "--emoji", "-j", is_flag=True, help="Enable emoji code. [dim]e.g. :sparkle:"
++    "--emoji", "-J", is_flag=True, help="Enable emoji code. [dim]e.g. :sparkle:"
+ )
+ @click.option("--left", "-l", is_flag=True, help="Align to left.")
+ @click.option("--right", "-r", is_flag=True, help="Align to right.")
+-- 
+2.50.1 (Apple Git-155)
+

@@ -1,0 +1,24 @@
+# ReadTheDocs config for the Shepherd docs.
+#
+# This system is MkDocs + mkdocstrings driven by docs_system/run.py (it generates the
+# API reference from the code facade and enforces the default-deny gate), so RTD runs
+# the real pipeline via `build.commands` rather than RTD's native `mkdocs:` builder
+# (which would ship an empty/broken reference).
+#
+# NOTE: this file lives under docs_system/, not the repo root. In the RTD project,
+# set Admin -> Settings -> "Path for .readthedocs.yaml file" to
+#   docs_system/.readthedocs.yaml
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "3.12"
+  commands:
+    # uv drives the pinned doc toolchain (see docs_system/run.py)
+    - pip install uv
+    # full pipeline: regen API pages -> gates -> example tests -> strict public+internal builds
+    - cd docs/_system && uv run --no-project python run.py check
+    # publish ONLY the public (default-deny) build; never site/internal
+    - mkdir -p "$READTHEDOCS_OUTPUT/html"
+    - cp -r docs/_system/site/shepherd/. "$READTHEDOCS_OUTPUT/html/"

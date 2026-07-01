@@ -1,0 +1,1 @@
+"""Internal boundary admission helpers."""

@@ -1,0 +1,23 @@
+# Fix Bug Context
+# Scenario: Fix unicode encoding issue in file output
+#
+# Prerequisites:
+#   1. Generate scenario: python fixtures/generate.py scenario rich-cli/fix_bug ./workspace
+#   2. Checkout branch: cd workspace && git checkout bugfix/unicode-handling
+#
+# Run with:
+#   ai-runner run pipelines.implement_change:main --context fixtures/bases/rich-cli/contexts/fix_bug.yaml
+#
+# Expected: Agent should find and fix the missing encoding="utf-8" in file output
+
+source:
+  type: local
+  path: ./workspace
+
+params:
+  bug_id: "RICH-CLI-001"
+  scenario: "fix_bug"
+
+# Note: artifact paths are relative to this context file's location
+artifacts:
+  description.md: ../../../workspace/.ai-runner/scenario/description.md

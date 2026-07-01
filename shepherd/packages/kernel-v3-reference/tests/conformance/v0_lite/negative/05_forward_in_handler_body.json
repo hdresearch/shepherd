@@ -1,0 +1,19 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "05_forward_in_handler_body",
+  "kind": "negative-profile-admission",
+  "description": "Forward (publication-experimental control) is not admitted by core-reference-v0-lite; rejected with construct=Forward.",
+  "covers": ["Forward", "profile-admission", "publication-experimental-rejection"],
+  "input": {
+    "program": {"node": "Forward"},
+    "observations": []
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "profile-admission",
+      "construct": "Forward",
+      "message_substring": "Forward"
+    }
+  }
+}

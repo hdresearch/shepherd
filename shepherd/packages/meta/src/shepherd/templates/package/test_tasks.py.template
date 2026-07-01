@@ -1,0 +1,17 @@
+"""Tests for {{name}} tasks."""
+
+from __future__ import annotations
+
+from shepherd import workspace
+
+from shepherd_{{module_name}}.tasks import hello_{{module_name}}
+
+
+class TestHello{{title}}:
+    """Tests for the starter task."""
+
+    def test_greeting(self) -> None:
+        with workspace(model="{{module_name}}-test"):
+            result = hello_{{module_name}}("World")
+
+        assert result == "Hello from {{name}}, World!"

@@ -1,0 +1,24 @@
+{
+  "fixture_schema_version": "shepherd_kernel_v3_reference.v0_lite_fixture.v1",
+  "profile": "core_reference_v0_lite",
+  "case": "03_string_value",
+  "kind": "negative-profile-admission",
+  "description": "String literal values are not admitted by -lite (only int and null).",
+  "covers": ["Lit", "Return"],
+  "input": {
+    "program": {
+      "node": "Let",
+      "name": "x",
+      "bound": {"node": "Return", "expr": {"node": "Lit", "value": "hello"}},
+      "body": {"node": "Return", "expr": {"node": "Var", "name": "x"}}
+    },
+    "observations": []
+  },
+  "expected": {
+    "rejection": {
+      "rejection_kind": "profile-admission",
+      "construct": "str",
+      "message_substring": "only int and null"
+    }
+  }
+}

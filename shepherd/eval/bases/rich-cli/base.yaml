@@ -1,0 +1,46 @@
+# Rich-CLI Base Project Configuration
+# ------------------------------------
+# Configuration for the rich-cli base project used in scenario generation.
+#
+# This file is derived from the original fixtures/patient/source.yaml.
+# The base/ and history/ directories are populated by refresh.py.
+
+name: rich-cli
+repo: https://github.com/Textualize/rich-cli.git
+commit: 36b4229780bb993ae45fd77cb8234c4ca574f782
+license: MIT
+description: |
+  Rich-CLI is a command line toolbox for Rich, providing
+  syntax highlighting, markdown rendering, JSON formatting,
+  and more. ~1150 lines of Python.
+
+# Local storage for offline generation (populated by refresh.py)
+# base/ contains source files at HEAD~history_depth
+# history/ contains patches from HEAD~history_depth to commit
+history_depth: 10
+
+# Files to keep from base project
+include:
+  - src/
+  - tests/
+  - test_data/
+  - pyproject.toml
+  - README.md
+  - LICENSE
+  - CHANGELOG.md
+
+# Files to remove (reduce noise, save space)
+exclude:
+  - .github/
+  - imgs/
+  - .pre-commit-config.yaml
+  - poetry.lock
+  - .gitignore
+
+# Dependencies (for documentation)
+dependencies:
+  runtime:
+    - rich>=10.0.0
+    - click>=8.0.0
+  dev:
+    - pytest

@@ -1,0 +1,49 @@
+From 7d353c5e7706e12cab4b667cec9fda248e54508a Mon Sep 17 00:00:00 2001
+From: Ed Rogers <edwin.rogers@gmail.com>
+Date: Tue, 20 May 2025 12:52:16 -0500
+Subject: [PATCH 10/14] Switch -j and -J to mean --emoji and --json
+ respectively
+
+---
+ README.md                | 2 +-
+ src/rich_cli/__main__.py | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/README.md b/README.md
+index 21f9bb6..9012949 100644
+--- a/README.md
++++ b/README.md
+@@ -113,7 +113,7 @@ applied to Markdown cells.
+ 
+ ## JSON
+ 
+-You can request JSON pretty formatting and highlighting with the `--json` or `-j` switches. If the file ends with `.json` then JSON will be auto-detected.
++You can request JSON pretty formatting and highlighting with the `--json` or `-J` switches. If the file ends with `.json` then JSON will be auto-detected.
+ 
+ ```
+ rich cats.json
+diff --git a/src/rich_cli/__main__.py b/src/rich_cli/__main__.py
+index 911bb08..98df6bb 100644
+--- a/src/rich_cli/__main__.py
++++ b/src/rich_cli/__main__.py
+@@ -254,7 +254,7 @@ class RichCommand(click.Command):
+     help="Print [u]console markup[/u]. [dim]See https://rich.readthedocs.io/en/latest/markup.html",
+ )
+ @click.option("--rule", "-u", is_flag=True, help="Display a horizontal [u]rule[/u].")
+-@click.option("--json", "-j", is_flag=True, help="Display as [u]JSON[/u].")
++@click.option("--json", "-J", is_flag=True, help="Display as [u]JSON[/u].")
+ @click.option("--markdown", "-m", is_flag=True, help="Display as [u]markdown[/u].")
+ @click.option("--rst", is_flag=True, help="Display [u]restructured text[/u].")
+ @click.option("--csv", is_flag=True, help="Display [u]CSV[/u] as a table.")
+@@ -278,7 +278,7 @@ class RichCommand(click.Command):
+     help="Display last [b]LINES[/] of the file (requires --syntax or --csv).",
+ )
+ @click.option(
+-    "--emoji", "-J", is_flag=True, help="Enable emoji code. [dim]e.g. :sparkle:"
++    "--emoji", "-j", is_flag=True, help="Enable emoji code. [dim]e.g. :sparkle:"
+ )
+ @click.option("--left", "-l", is_flag=True, help="Align to left.")
+ @click.option("--right", "-r", is_flag=True, help="Align to right.")
+-- 
+2.50.1 (Apple Git-155)
+

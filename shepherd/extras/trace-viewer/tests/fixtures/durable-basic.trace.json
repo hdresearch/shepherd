@@ -1,0 +1,46 @@
+{
+  "schema": "vcscore/trace-revision/v1",
+  "kind": "shepherd.task_trace",
+  "trace_runtime": "shepherd.trace.provider-neutral.v1",
+  "trace_owner_id": "task:pkg.mod:run:run-basic",
+  "frontier_id": "frontier:run-basic",
+  "run_ref": "run-basic",
+  "identity_domain": "vcscore.canonical.v2",
+  "events": [
+    {
+      "id": "task-invocation",
+      "kind": "task.invocation",
+      "identity_domain": "shepherd.kernel.canonical.v2",
+      "record_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "body": {
+        "task_id": "pkg.mod:build",
+        "args_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "may_profile": "Permissive"
+      }
+    },
+    {
+      "id": "workspace-transition",
+      "kind": "substrate.transition",
+      "binding": "workspace",
+      "head_from": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "head_to": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "semantic_op": "run",
+      "operation_id": "op-basic"
+    },
+    {
+      "id": "run-lifecycle",
+      "kind": "run.lifecycle",
+      "transition": "finished",
+      "terminal_status": "merged",
+      "may_profile": "Permissive",
+      "may_source": "declared"
+    }
+  ],
+  "causal_edges": [
+    ["task-invocation", "workspace-transition"],
+    ["workspace-transition", "run-lifecycle"]
+  ],
+  "owner_paths": {
+    "task:pkg.mod:run:run-basic": ["task-invocation", "workspace-transition", "run-lifecycle"]
+  }
+}

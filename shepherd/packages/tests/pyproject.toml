@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-tests"
+version = "1.0.0a1"
+description = "Shared test utilities for Shepherd packages"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = [
+    "shepherd-core>=2.0.0a1",
+    "shepherd-runtime>=0.1.0a1,<1.0.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.optional-dependencies]
+vcr = ["vcrpy>=6.0.0"]
+all = ["shepherd-tests[vcr]"]
+dev = [
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+]
+
+[project.entry-points."shepherd.providers"]
+mock = "shepherd_tests.mock_provider:MockProvider"
+
+[tool.uv.sources]
+shepherd-core = { workspace = true }
+shepherd-runtime = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_tests"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+
+# Ruff: see ruff.toml at workspace root.

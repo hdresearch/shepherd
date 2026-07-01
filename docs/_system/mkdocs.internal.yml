@@ -1,0 +1,20 @@
+# PROTOTYPE — internal/reviewer build. Inherits the public config; widens to
+# the full tree via auto-discovered nav (explicit null below — omitting the key
+# would INHERIT the public nav instead, probe-proven). Output must never be
+# deployed to a public origin.
+
+INHERIT: mkdocs.yml
+
+site_dir: site/internal
+
+extra:
+  shepherd_docs_version: "1.0-dev (prototype, INTERNAL REVIEWER BUILD)"
+
+# Only non-page inputs stay excluded; every doc page is built and auto-naved.
+exclude_docs: |
+  _templates/
+  _runbook.md
+  _expected-forward.txt
+  reference/api/_map.yml
+
+nav:

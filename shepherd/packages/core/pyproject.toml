@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "shepherd-core"
+version = "2.0.0a1"
+description = "Core framework for effect-based AI agents"
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.10.0,<4.0.0"
+dependencies = [
+    "commons-vcs",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "mypy>=1.8.0",
+    "ruff>=0.2.0",
+]
+
+[dependency-groups]
+test = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-asyncio>=0.23.0,<1.0.0",
+    "pytest-socket>=0.7.0,<1.0.0",
+]
+lint = ["ruff>=0.5.0,<1.0.0"]
+typing = [
+    "mypy>=1.10.0,<2.0.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/shepherd_core"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config --durations=5 -vv"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+# Markers mirrored from root pyproject.toml for --strict-markers compatibility
+markers = [
+    "slow: marks tests as slow (>1s execution time)",
+    "integration: marks tests requiring external resources or network",
+    "container: marks tests requiring Podman/container runtime",
+    "vm_overlay: marks tests requiring macOS Podman Machine with VM overlay",
+    "e2e: marks end-to-end tests that run actual containers",
+    "benchmark: marks performance benchmark tests",
+    "spike: marks exploratory/documentation tests (not regression tests)",
+    "requires: marks tests as requiring a specific library",
+]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+strict = true
+enable_error_code = "deprecated"
+warn_unreachable = true
+
+# Ruff: see ruff.toml at workspace root.
