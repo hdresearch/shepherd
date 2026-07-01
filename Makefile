@@ -4,7 +4,8 @@
 	format format-active format-active-report format-packages clean help typecheck typecheck-runtime \
 	typecheck-shepherd2 typecheck-commons-vcs typecheck-vcs-core lock-check verify \
 	test-core test-providers test-contexts test-banking test-coding test-meta test-vcs-core \
-	test-shepherd2 test-commons-vcs test-kernel-v3-reference
+	test-shepherd2 test-commons-vcs test-kernel-v3-reference \
+	build-dist check-dist publish-test publish
 
 MAKE_PKGS := $(patsubst %/Makefile,%,$(wildcard shepherd/packages/*/Makefile shepherd/extras/*/Makefile vcs-core/packages/*/Makefile vcs-core/extras/*/Makefile))
 RUFF_ACTIVE_TARGETS := \
@@ -53,6 +54,12 @@ help:
 	@echo "  make typecheck-runtime - Type check shepherd-runtime with package-safe mypy module mapping"
 	@echo "  make lock-check       - Verify root and standalone shepherd2 lockfiles"
 	@echo "  make clean            - Clean build artifacts from all packages"
+	@echo ""
+	@echo "Publishing (single bundled shepherd-ai wheel):"
+	@echo "  make build-dist       - Build the shepherd-ai sdist + wheel into dist/"
+	@echo "  make check-dist       - Validate built artifacts with twine check"
+	@echo "  make publish-test     - Upload dist/ to TestPyPI (needs credentials)"
+	@echo "  make publish          - Upload dist/ to PyPI (needs credentials)"
 	@echo ""
 	@echo "Per-package commands:"
 	@echo "  make test-core        - Run tests for shepherd-core"
@@ -245,6 +252,22 @@ test-commons-vcs:
 
 test-kernel-v3-reference:
 	uv run --directory shepherd/packages/kernel-v3-reference --group dev pytest -q
+
+# Build the single bundled shepherd-ai distribution for PyPI
+build-dist:
+	uv run --no-project python packaging/shepherd-ai/build.py
+
+# Validate the built artifacts render/install-check cleanly
+check-dist:
+	uvx twine check dist/shepherd_ai-*
+
+# Upload to TestPyPI first for a dry run (requires TestPyPI credentials/token)
+publish-test:
+	uvx twine upload --repository testpypi dist/shepherd_ai-*
+
+# Upload to PyPI (requires PyPI credentials/token for the shepherd-ai project)
+publish:
+	uvx twine upload dist/shepherd_ai-*
 
 # Verify all imports work
 verify:

@@ -134,13 +134,13 @@ quickstart.
 
 Checked-in quickstart examples live in:
 
-- [`examples/quickstart/offline_task.py`](examples/quickstart/offline_task.py)
-- [`examples/quickstart/world_channel.py`](examples/quickstart/world_channel.py)
-- [`examples/quickstart/claude_readme.py`](examples/quickstart/claude_readme.py)
+- [`examples/quickstart/offline_task.py`](https://github.com/shepherd-agents/shepherd/blob/main/examples/quickstart/offline_task.py)
+- [`examples/quickstart/world_channel.py`](https://github.com/shepherd-agents/shepherd/blob/main/examples/quickstart/world_channel.py)
+- [`examples/quickstart/claude_readme.py`](https://github.com/shepherd-agents/shepherd/blob/main/examples/quickstart/claude_readme.py)
 
 The visual-artifact notebooks live in:
 
-- [`examples/notebooks/visual_artifact/notebooks/`](examples/notebooks/visual_artifact/notebooks/)
+- [`examples/notebooks/visual_artifact/notebooks/`](https://github.com/shepherd-agents/shepherd/tree/main/examples/notebooks/visual_artifact/notebooks)
 
 Launch them with:
 
@@ -160,12 +160,12 @@ make baseline
 
 ## Documentation
 
-Full documentation lives at **[docs.shepherd-agents.ai](https://docs.shepherd-agents.ai/)**. In this repository the docs are authored under [`docs/shepherd/`](docs/shepherd/):
+Full documentation lives at **[docs.shepherd-agents.ai](https://docs.shepherd-agents.ai/)**. In this repository the docs are authored under [`docs/shepherd/`](https://github.com/shepherd-agents/shepherd/tree/main/docs/shepherd):
 
-- [Quickstart guide](docs/shepherd/start/quickstart.md)
-- [Runtime substrate and the world channel](docs/shepherd/concepts/runtime-substrate.md)
-- [Concepts](docs/shepherd/concepts/index.md) — tasks, effects, scopes, permissions, and the trace
-- [Examples](examples/README.md)
+- [Quickstart guide](https://github.com/shepherd-agents/shepherd/blob/main/docs/shepherd/start/quickstart.md)
+- [Runtime substrate and the world channel](https://github.com/shepherd-agents/shepherd/blob/main/docs/shepherd/concepts/runtime-substrate.md)
+- [Concepts](https://github.com/shepherd-agents/shepherd/blob/main/docs/shepherd/concepts/index.md) — tasks, effects, scopes, permissions, and the trace
+- [Examples](https://github.com/shepherd-agents/shepherd/blob/main/examples/README.md)
 
 ## Reproducing Paper Results
 
@@ -187,4 +187,4 @@ The full experiment code — the meta-agent applications and the framework-perfo
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](https://github.com/shepherd-agents/shepherd/blob/main/LICENSE) file for details.
