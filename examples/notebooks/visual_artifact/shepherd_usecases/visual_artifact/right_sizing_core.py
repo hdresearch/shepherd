@@ -160,8 +160,7 @@ def caught_hard_failures(verdicts: Mapping[str, object], labels: Mapping[str, st
     caught = sum(
         1
         for cid in expected
-        if by_id.get(cid, {}).get("verdict") == "fail"
-        or by_id.get(cid, {}).get("direction_check") == "fail"
+        if by_id.get(cid, {}).get("verdict") == "fail" or by_id.get(cid, {}).get("direction_check") == "fail"
     )
     return caught, len(expected)
 
