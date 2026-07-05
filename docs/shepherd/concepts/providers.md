@@ -46,6 +46,23 @@ it is the one the docs and CI use so that what you read is what ran. Live
 providers exist alongside it; they cost money and vary run to run, which is
 exactly why everyday development and CI stay on the offline one.
 
+## Retained runs pick the provider per run
+
+The `model=` selection above governs ordinary in-process task calls. For a
+**retained run** — one whose world output you inspect and settle
+([permissions](permissions.md), [placements](placements.md)) — the provider is
+chosen on the run itself, as a `runtime=` envelope:
+
+```python
+run = workspace.run(task, repo=workspace.git_repo(),
+                    runtime={"provider": "static"})   # deterministic, offline, CI-safe
+```
+
+The deterministic offline provider is named **`static`**; a live local Claude
+lane is `{"provider": "claude"}`, which requires a jail-capable host. The
+provider decides model behavior; Shepherd still owns the run's authority,
+retained output, and settlement.
+
 ## What a provider is *not*
 
 - **Not credentials.** Selecting a provider in code (`model="claude:sonnet-4-5"`) is
