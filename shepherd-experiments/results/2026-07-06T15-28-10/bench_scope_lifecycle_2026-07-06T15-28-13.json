@@ -1,0 +1,47 @@
+{
+  "benchmark": "bench_scope_lifecycle",
+  "timestamp": "2026-07-06T15:28:13.543751",
+  "platform": "macOS-15.6-arm64-arm-64bit",
+  "python": "3.11.14 (main, Dec  9 2025, 19:11:45) [Clang 21.1.4 ]",
+  "reps": 25,
+  "cold_startup": {
+    "mean_ms": 13.599,
+    "stdev_ms": 45.39,
+    "p50_ms": 4.561,
+    "p90_ms": 4.887,
+    "p99_ms": 231.469,
+    "min_ms": 4.157,
+    "max_ms": 231.469,
+    "n": 25
+  },
+  "fork": {
+    "mean_ms": 4.986,
+    "stdev_ms": 0.803,
+    "p50_ms": 5.087,
+    "p90_ms": 5.953,
+    "p99_ms": 6.912,
+    "min_ms": 3.762,
+    "max_ms": 6.912,
+    "n": 25
+  },
+  "discard": {
+    "mean_ms": 12.736,
+    "stdev_ms": 1.01,
+    "p50_ms": 12.777,
+    "p90_ms": 13.939,
+    "p99_ms": 14.628,
+    "min_ms": 10.054,
+    "max_ms": 14.628,
+    "n": 25
+  },
+  "roundtrip_fork_write_merge": {
+    "mean_ms": 48.607,
+    "stdev_ms": 3.609,
+    "p50_ms": 47.605,
+    "p90_ms": 56.182,
+    "p99_ms": 56.947,
+    "min_ms": 44.664,
+    "max_ms": 56.947,
+    "n": 15
+  }
+}

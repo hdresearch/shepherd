@@ -1,0 +1,44 @@
+{
+  "experiment": "exp_coding_task",
+  "task": "Add a fibonacci function with memoization to utils.py",
+  "n_agents": 3,
+  "model": "claude-opus-4-5",
+  "wall_time_s": 20.54,
+  "merged": 3,
+  "discarded": 0,
+  "results": [
+    {
+      "agent_index": 0,
+      "scope_name": "agent-0-d4ec52",
+      "file_written": "utils.py",
+      "merged": true,
+      "discarded": false,
+      "elapsed_s": 7.691,
+      "evaluation": "DECISION: MERGE\n\nREASON: The implementation is correct, complete, and follows good coding practices - it properly implements memoization to optimize the recursive Fibonacci calculation, handles base cases correctly (0 and 1), includes clear documentation, and avoids the mutable default argument pitfall by initializing memo to None and creating a new dict when needed.",
+      "code_lines": 24,
+      "generated_code": "def fibonacci(n, memo=None):\n    \"\"\"\n    Calculate the nth Fibonacci number using memoization.\n    \n    Args:\n        n: The index of the Fibonacci number to calculate (0-indexed)\n        memo: Dictionary for memoization (internal use)\n    \n    Returns:\n        The nth Fibonacci number\n    \"\"\"\n    if memo is None:\n        memo = {}\n    \n    if n in memo:\n        return memo[n]\n    \n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    \n    memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo)\n    return memo[n]"
+    },
+    {
+      "agent_index": 1,
+      "scope_name": "agent-1-48964e",
+      "file_written": "utils.py",
+      "merged": true,
+      "discarded": false,
+      "elapsed_s": 6.663,
+      "evaluation": "DECISION: MERGE\nREASON: The implementation is correct, complete, and follows good practices - it includes proper memoization to optimize recursive calls, handles edge cases with a ValueError for negative inputs, has clear docstring documentation, and correctly calculates Fibonacci numbers with O(n) time complexity.",
+      "code_lines": 28,
+      "generated_code": "def fibonacci(n, memo=None):\n    \"\"\"\n    Calculate the nth Fibonacci number using memoization.\n    \n    Args:\n        n: A non-negative integer representing the position in the Fibonacci sequence.\n        memo: Dictionary used for memoization (internal use).\n    \n    Returns:\n        The nth Fibonacci number.\n    \n    Raises:\n        ValueError: If n is negative.\n    \"\"\"\n    if memo is None:\n        memo = {}\n    \n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    \n    if n in memo:\n        return memo[n]\n    \n    if n <= 1:\n        return n\n    \n    memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo)\n    return memo[n]"
+    },
+    {
+      "agent_index": 2,
+      "scope_name": "agent-2-781b0b",
+      "file_written": "utils.py",
+      "merged": true,
+      "discarded": false,
+      "elapsed_s": 6.186,
+      "evaluation": "DECISION: MERGE\n\nREASON: The implementation is correct, complete, and follows good practices - it properly handles base cases (n <= 0 returns 0, n == 1 returns 1), implements memoization correctly by initializing the memo dict on first call and caching computed values, and includes clear documentation with a docstring explaining the function's purpose, arguments, and return value.",
+      "code_lines": 24,
+      "generated_code": "def fibonacci(n, memo=None):\n    \"\"\"\n    Calculate the nth Fibonacci number using memoization.\n    \n    Args:\n        n: The index of the Fibonacci number to calculate (0-indexed)\n        memo: Dictionary to store computed values (used internally)\n    \n    Returns:\n        The nth Fibonacci number\n    \"\"\"\n    if memo is None:\n        memo = {}\n    \n    if n in memo:\n        return memo[n]\n    \n    if n <= 0:\n        return 0\n    elif n == 1:\n        return 1\n    \n    memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo)\n    return memo[n]"
+    }
+  ]
+}

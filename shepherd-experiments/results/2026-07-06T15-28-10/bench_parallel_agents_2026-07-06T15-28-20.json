@@ -1,0 +1,25 @@
+{
+  "benchmark": "bench_parallel_agents",
+  "timestamp": "2026-07-06T15:28:20.766214",
+  "platform": "macOS-15.6-arm64-arm-64bit",
+  "python": "3.11.14 (main, Dec  9 2025, 19:11:45) [Clang 21.1.4 ]",
+  "n_agents": 3,
+  "stub_agent_duration_s": 1.0,
+  "sequential_wall_s": 3.302,
+  "parallel_wall_s": 1.118,
+  "speedup": 2.95,
+  "ideal_speedup": 3.0,
+  "efficiency_pct": 98.4,
+  "overhead_above_critical_path_ms": 67.4,
+  "scope_setup_mean_ms": 21.67,
+  "per_agent_sequential_s": [
+    1.058,
+    1.06,
+    1.049
+  ],
+  "per_agent_parallel_s": [
+    1.05,
+    1.051,
+    1.051
+  ]
+}

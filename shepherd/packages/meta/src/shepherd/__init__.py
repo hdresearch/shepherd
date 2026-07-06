@@ -124,19 +124,32 @@ def open(  # noqa: A001
     return ShepherdWorkspace.discover(cwd, activate=activate, backend=backend)
 
 
-def __getattr__(name: str) -> Any:
-    """Resolve the lazy handle surface on first access (PEP 562)."""
-    if name not in _LAZY:
-        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-    import importlib
-
-    value = getattr(importlib.import_module(_LAZY_MODULE), name)
-    globals()[name] = value  # cache so subsequent access skips __getattr__
-    return value
-
-
 def __dir__() -> list[str]:
     return sorted({*globals(), *_LAZY})
+
+
+# ── Vers backend (lazy) ─────────────────────────────────────────────────────
+# ``from shepherd.vers_backend import VersShepherd`` is the preferred import;
+# ``sp.VersShepherd`` is provided as a shortcut but only loads the module on
+# first access so that ``import shepherd`` stays light when Vers infra is not
+# installed.
+
+def _vers_backend() -> Any:
+    import importlib
+    return importlib.import_module("shepherd.vers_backend")
+
+def __getattr__(name: str) -> Any:  # type: ignore[no-redef]  # noqa: F811
+    """Resolve the lazy handle surface on first access (PEP 562)."""
+    if name in _LAZY:
+        import importlib
+        value = getattr(importlib.import_module(_LAZY_MODULE), name)
+        globals()[name] = value
+        return value
+    if name in {"VersShepherd", "VersAgentScope", "SubAgentResult", "run_shepherd_async"}:
+        value = getattr(_vers_backend(), name)
+        globals()[name] = value
+        return value
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 # Ordered by the teaching flow, not alphabetically.
@@ -185,4 +198,9 @@ __all__ = [  # noqa: RUF022
     "GitRepoGrant",
     "Flow",
     "FlowControlClient",
+    # Vers infra backend (lazy — only loads vcs_core when accessed)
+    "VersShepherd",
+    "VersAgentScope",
+    "SubAgentResult",
+    "run_shepherd_async",
 ]

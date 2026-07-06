@@ -1,0 +1,50 @@
+{
+  "experiment": "exp_multi_step_refactor",
+  "steps": [
+    "Create utils.py with a fibonacci function (iterative, no memoization) and a factorial function.",
+    "Refactor utils.py: add type hints to both functions.",
+    "Refactor utils.py: add a docstring to each function explaining its parameters and return value."
+  ],
+  "model": "claude-opus-4-5",
+  "total_elapsed_s": 21.58,
+  "completed": 2,
+  "halted": true,
+  "step_results": [
+    {
+      "step_index": 0,
+      "instruction": "Create utils.py with a fibonacci function (iterative, no memoization) and a factorial function.",
+      "scope_name": "step-0-d4725c",
+      "file_written": "utils.py",
+      "merged": true,
+      "discarded": false,
+      "elapsed_s": 7.642,
+      "code_lines": 40,
+      "evaluation": "DECISION: MERGE\nREASON: The code correctly implements both a fibonacci function (using iterative approach without memoization) and a factorial function as specified in the instruction, with proper input validation and clear documentation.",
+      "generated_code": "def fibonacci(n):\n    \"\"\"\n    Calculate the nth Fibonacci number using an iterative approach.\n    \n    Args:\n        n: A non-negative integer representing the position in the Fibonacci sequence.\n        \n    Returns:\n        The nth Fibonacci number.\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n    \n    prev, curr = 0, 1\n    for _ in range(2, n + 1):\n        prev, curr = curr, prev + curr\n    return curr\n\n\ndef factorial(n):\n    \"\"\"\n    Calculate the factorial of n.\n    \n    Args:\n        n: A non-negative integer.\n        \n    Returns:\n        The factorial of n (n!).\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    \n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result"
+    },
+    {
+      "step_index": 1,
+      "instruction": "Refactor utils.py: add type hints to both functions.",
+      "scope_name": "step-1-5b867c",
+      "file_written": "utils.py",
+      "merged": true,
+      "discarded": false,
+      "elapsed_s": 4.948,
+      "code_lines": 40,
+      "evaluation": "DECISION: MERGE\nREASON: The change correctly adds type hints to both functions (`fibonacci(n: int) -> int` and `factorial(n: int) -> int`) as instructed, and the code logic remains unchanged and correct.",
+      "generated_code": "def fibonacci(n: int) -> int:\n    \"\"\"\n    Calculate the nth Fibonacci number using an iterative approach.\n\n    Args:\n        n: A non-negative integer representing the position in the Fibonacci sequence.\n\n    Returns:\n        The nth Fibonacci number.\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n\n    prev, curr = 0, 1\n    for _ in range(2, n + 1):\n        prev, curr = curr, prev + curr\n    return curr\n\n\ndef factorial(n: int) -> int:\n    \"\"\"\n    Calculate the factorial of n.\n\n    Args:\n        n: A non-negative integer.\n\n    Returns:\n        The factorial of n (n!).\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result"
+    },
+    {
+      "step_index": 2,
+      "instruction": "Refactor utils.py: add a docstring to each function explaining its parameters and return value.",
+      "scope_name": "step-2-12e6a4",
+      "file_written": "utils.py",
+      "merged": false,
+      "discarded": true,
+      "elapsed_s": 8.841,
+      "code_lines": 60,
+      "evaluation": "DECISION: DISCARD\nREASON: The AFTER code is incomplete and truncated - the `factorial` function is cut off mid-variable name (`resul` instead of `result`) and is missing the rest of the function body, making it syntactically invalid and non-functional.",
+      "generated_code": "def fibonacci(n: int) -> int:\n    \"\"\"\n    Calculate the nth Fibonacci number using an iterative approach.\n\n    The Fibonacci sequence is defined as F(0) = 0, F(1) = 1, and\n    F(n) = F(n-1) + F(n-2) for n > 1.\n\n    Parameters:\n        n (int): A non-negative integer representing the position in the\n            Fibonacci sequence. Must be >= 0.\n\n    Returns:\n        int: The nth Fibonacci number. For example:\n            - fibonacci(0) returns 0\n            - fibonacci(1) returns 1\n            - fibonacci(10) returns 55\n\n    Raises:\n        ValueError: If n is a negative integer.\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n    if n == 0:\n        return 0\n    if n == 1:\n        return 1\n\n    prev, curr = 0, 1\n    for _ in range(2, n + 1):\n        prev, curr = curr, prev + curr\n    return curr\n\n\ndef factorial(n: int) -> int:\n    \"\"\"\n    Calculate the factorial of n.\n\n    The factorial of n (denoted as n!) is the product of all positive\n    integers less than or equal to n. By convention, 0! = 1.\n\n    Parameters:\n        n (int): A non-negative integer for which to calculate the factorial.\n            Must be >= 0.\n\n    Returns:\n        int: The factorial of n (n!). For example:\n            - factorial(0) returns 1\n            - factorial(1) returns 1\n            - factorial(5) returns 120\n\n    Raises:\n        ValueError: If n is a negative integer.\n    \"\"\"\n    if n < 0:\n        raise ValueError(\"n must be a non-negative integer\")\n\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result"
+    }
+  ]
+}
