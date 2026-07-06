@@ -27,6 +27,7 @@ dependencies = [
     "ruff>=0.15.0,<1.0.0",  # Ensure `uv run ruff` resolves to the locked workspace tool, not PATH.
     "RestrictedPython>=7.0,<8.0",  # Required for secure task reconstruction tests
     "filelock>=3.0",  # Required for persistence tests
+    "litellm>=1.82.4",
 ]
 
 [dependency-groups]

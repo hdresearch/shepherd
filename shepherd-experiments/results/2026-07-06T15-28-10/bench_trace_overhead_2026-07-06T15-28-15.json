@@ -1,0 +1,34 @@
+{
+  "benchmark": "bench_trace_overhead",
+  "timestamp": "2026-07-06T15:28:15.911491",
+  "platform": "macOS-15.6-arm64-arm-64bit",
+  "python": "3.11.14 (main, Dec  9 2025, 19:11:45) [Clang 21.1.4 ]",
+  "config": {
+    "n_files": 1,
+    "file_size_kb": 1.0,
+    "payload_kb_total": 1.0,
+    "reps": 25
+  },
+  "plain_git": {
+    "mean_ms": 21.744,
+    "stdev_ms": 0.462,
+    "p50_ms": 21.658,
+    "p90_ms": 22.249,
+    "p99_ms": 23.372,
+    "min_ms": 21.058,
+    "max_ms": 23.372,
+    "n": 25
+  },
+  "vcscore_roundtrip": {
+    "mean_ms": 33.637,
+    "stdev_ms": 0.622,
+    "p50_ms": 33.668,
+    "p90_ms": 34.195,
+    "p99_ms": 35.036,
+    "min_ms": 32.186,
+    "max_ms": 35.036,
+    "n": 25
+  },
+  "overhead_mean_ms": 11.893,
+  "overhead_pct": 54.7
+}
