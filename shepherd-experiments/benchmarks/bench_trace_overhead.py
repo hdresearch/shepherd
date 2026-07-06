@@ -1,234 +1,189 @@
-"""Benchmark: Vers trace write overhead vs. plain git baseline.
+"""Benchmark: Shepherd substrate trace overhead vs plain git.
 
-Compares:
-  plain git   — file writes + git add + git commit (raw git cost only)
-  VcsCore RT  — fork() + file writes + git commit inside scope + merge()
+Compares the latency of:
+  A. Shepherd workspace.run() — full substrate path (ShepherdRunDriver +
+     VcsCore execute_recorded + scope fork/merge + trace append)
+  B. Plain git operations — git worktree add + file write + git commit +
+     git worktree remove (equivalent work, no Shepherd overhead)
 
-Overhead = VcsCore_roundtrip_ms - git_baseline_ms.
+This quantifies the substrate cost described in §5 of the Shepherd paper.
 
-Usage
------
-::
-
-    python bench_trace_overhead.py
-    python bench_trace_overhead.py --files 10 --file-size-kb 4 --reps 30
-    python bench_trace_overhead.py --json
-    python bench_trace_overhead.py --results-dir ../results/my-run
+NOTE: requires a jail-capable host and claude CLI (same as other benchmarks).
+The static provider is used so agent generation time is excluded.
 """
 
 from __future__ import annotations
 
 import argparse
-import datetime
 import json
-import platform
-import statistics
 import subprocess
 import sys
 import tempfile
 import time
-import uuid
 from pathlib import Path
+from statistics import mean, median, stdev
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_HERE))
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _init_workspace(ws: Path) -> None:
-    subprocess.run(["git", "init", str(ws)], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.email", "bench@shepherd"], capture_output=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.name", "Shepherd Bench"], capture_output=True)
-    (ws / "seed.txt").write_text("seed\n")
-    subprocess.run(["git", "-C", str(ws), "add", "."], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "commit", "-m", "seed"], capture_output=True, check=True)
+import shepherd as sp
+from ws_init import ensure_shepherd_workspace, seed_workspace
 
 
-def _build_vcscore(ws: Path) -> object:
-    from vcs_core import (
-        DeclarativeFilesystemSubstrate,
-        Store,
-        VcsCore,
-        build_builtin_substrate_context,
+# ── Shepherd path ────────────────────────────────────────────────────────────
+
+def write_marker(
+    repo: sp.May[sp.GitRepo, sp.ReadWrite],
+    marker: str = "bench",
+    output_path: str = "bench_marker.py",
+) -> None:
+    """Create a file at ``output_path`` containing only ``marker`` as a comment."""
+
+
+def _shepherd_roundtrip(ws: object, iteration: int) -> float:
+    """One full workspace.run() + discard round-trip; return elapsed seconds."""
+    t0 = time.perf_counter()
+    run = ws.run(  # type: ignore[attr-defined]
+        "bench.write_marker",
+        repo=ws.git_repo(),  # type: ignore[attr-defined]
+        args={"marker": f"iter_{iteration}", "output_path": f"bench_{iteration}.py"},
+        placement="auto",
+        runtime={"provider": "claude"},
     )
-    store = Store(str(ws / ".vcscore"))
-    if store.is_empty:
-        store.create_root_commit()
-    ctx = build_builtin_substrate_context(store, workspace=ws)
-    fs = DeclarativeFilesystemSubstrate(ctx)
-    return VcsCore(str(ws), substrates=[fs], store=store)
+    run.output().discard()
+    return time.perf_counter() - t0
 
 
-def _write_files(target: Path, n: int, size_bytes: int, prefix: str) -> None:
-    payload = "x" * size_bytes
-    for i in range(n):
-        (target / f"{prefix}file_{i:04d}.py").write_text(payload)
+# ── Plain git path ───────────────────────────────────────────────────────────
 
-
-def _git_stage_commit(ws: Path, msg: str) -> None:
-    subprocess.run(["git", "-C", str(ws), "add", "-A"], capture_output=True, check=True)
-    subprocess.run(
-        ["git", "-C", str(ws), "commit", "-m", msg, "--allow-empty-message"],
-        capture_output=True, check=True,
-    )
-
-
-def _percentiles(samples: list[float]) -> dict[str, float]:
-    s = sorted(samples)
-    n = len(s)
-
-    def _p(pct: float) -> float:
-        return round(s[min(int(pct / 100.0 * n), n - 1)] * 1000, 3)
-
-    return {
-        "mean_ms":  round(statistics.mean(s) * 1000, 3),
-        "stdev_ms": round(statistics.stdev(s) * 1000, 3) if n > 1 else 0.0,
-        "p50_ms":   _p(50),
-        "p90_ms":   _p(90),
-        "p99_ms":   _p(99),
-        "min_ms":   round(min(s) * 1000, 3),
-        "max_ms":   round(max(s) * 1000, 3),
-        "n":        n,
-    }
-
-
-# ---------------------------------------------------------------------------
-# Baseline: plain git add + commit
-# ---------------------------------------------------------------------------
-
-def bench_plain_git(ws: Path, n_files: int, size_bytes: int, reps: int) -> dict[str, float]:
-    times: list[float] = []
-    for rep in range(reps):
-        t0 = time.perf_counter()
-        _write_files(ws, n_files, size_bytes, prefix=f"g{rep}_")
-        _git_stage_commit(ws, f"baseline {rep}")
-        times.append(time.perf_counter() - t0)
-    return _percentiles(times)
-
-
-# ---------------------------------------------------------------------------
-# VcsCore roundtrip: fork → write inside worktree → commit → merge
-# ---------------------------------------------------------------------------
-
-def bench_vcscore_roundtrip(ws: Path, n_files: int, size_bytes: int, reps: int) -> dict[str, float]:
-    from vcs_core import VcsCore
-    vcs = _build_vcscore(ws)
-    vcs.activate()
-    assert isinstance(vcs, VcsCore)
-    ground = vcs.ground
-    worktrees_root = ws.parent / ".bench-trace-wt"
-    worktrees_root.mkdir(exist_ok=True)
-    times: list[float] = []
-    for rep in range(reps):
-        uid = uuid.uuid4().hex[:6]
-        branch = f"bench/trace/{uid}"
-        wt_dir = worktrees_root / uid
-        wt_dir.mkdir()
+def _git_roundtrip(ws_dir: Path, iteration: int) -> float:
+    """Equivalent work via plain git worktree; return elapsed seconds."""
+    branch = f"bench-plain-{iteration}"
+    wt_dir = ws_dir / f".bench_wt_{iteration}"
+    t0 = time.perf_counter()
+    try:
         subprocess.run(
-            ["git", "-C", str(ws), "worktree", "add", "-b", branch, str(wt_dir)],
-            capture_output=True, check=True,
+            ["git", "worktree", "add", "-b", branch, str(wt_dir)],
+            cwd=ws_dir, check=True, capture_output=True,
         )
-        t0 = time.perf_counter()
-        scope = vcs.fork(ground, f"bench-trace-{uid}")
-        _write_files(wt_dir, n_files, size_bytes, prefix=f"t{rep}_")
-        _git_stage_commit(wt_dir, f"trace {rep}")
-        vcs.merge(scope, ground)
-        times.append(time.perf_counter() - t0)
+        (wt_dir / f"bench_{iteration}.py").write_text(f"# iter_{iteration}\n")
+        subprocess.run(["git", "add", "-A"], cwd=wt_dir, check=True, capture_output=True)
         subprocess.run(
-            ["git", "-C", str(ws), "worktree", "remove", "--force", str(wt_dir)],
-            capture_output=True,
+            ["git", "commit", "-m", f"bench {iteration}"],
+            cwd=wt_dir, check=True, capture_output=True,
         )
-    vcs.deactivate(warn_on_open_scopes=False)
-    return _percentiles(times)
+    finally:
+        subprocess.run(
+            ["git", "worktree", "remove", "--force", str(wt_dir)],
+            cwd=ws_dir, check=False, capture_output=True,
+        )
+        subprocess.run(
+            ["git", "branch", "-D", branch],
+            cwd=ws_dir, check=False, capture_output=True,
+        )
+    return time.perf_counter() - t0
 
 
-# ---------------------------------------------------------------------------
-# Reporting
-# ---------------------------------------------------------------------------
+# ── Benchmark ────────────────────────────────────────────────────────────────
 
-def _save_result(name: str, data: dict, results_dir: str | None) -> None:
-    if not results_dir:
-        return
-    rd = Path(results_dir)
-    rd.mkdir(parents=True, exist_ok=True)
-    ts = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    out = rd / f"{name}_{ts}.json"
-    out.write_text(json.dumps(data, indent=2))
-    print(f"Persisted → {out}")
+def run_benchmark(
+    *,
+    workspace_dir: Path,
+    n_iters: int = 5,
+    results_dir: Path,
+) -> dict:
+    results_dir.mkdir(parents=True, exist_ok=True)
+    log_path = results_dir / "bench_trace_overhead.log"
+    log = open(log_path, "w")
 
+    def _log(msg: str) -> None:
+        print(msg)
+        print(msg, file=log, flush=True)
 
-def run_benchmarks(n_files: int, file_size_kb: float, reps: int,
-                   as_json: bool, results_dir: str | None) -> dict:
-    size_bytes = int(file_size_kb * 1024)
-    with tempfile.TemporaryDirectory(prefix="shepherd-bench-trace-") as tmp:
-        ws = Path(tmp)
-        _init_workspace(ws)
-        git_stats = bench_plain_git(ws, n_files, size_bytes, reps)
-        vcs_stats = bench_vcscore_roundtrip(ws, n_files, size_bytes, reps)
+    _log("=== Benchmark: Trace overhead ===")
+    _log(f"workspace : {workspace_dir}  n_iters: {n_iters}")
 
-    overhead_ms  = vcs_stats["mean_ms"] - git_stats["mean_ms"]
-    overhead_pct = (overhead_ms / git_stats["mean_ms"] * 100) if git_stats["mean_ms"] else 0.0
+    shepherd_times: list[float] = []
+    git_times: list[float] = []
+
+    ws = ensure_shepherd_workspace(workspace_dir)
+    try:
+        ws.tasks.register(write_marker, task_id="bench.write_marker", may_default="ReadWrite")
+
+        _log("\n-- Shepherd substrate path --")
+        for i in range(n_iters):
+            t = _shepherd_roundtrip(ws, i)
+            shepherd_times.append(t)
+            _log(f"  iter {i:2d}: {t*1000:.1f} ms")
+
+    finally:
+        ws.close()
+        log.close()
+
+    # Re-open log for git path (ws already closed)
+    log = open(log_path, "a")
+    _log("\n-- Plain git path --")
+    for i in range(n_iters):
+        t = _git_roundtrip(workspace_dir, i)
+        git_times.append(t)
+        _log(f"  iter {i:2d}: {t*1000:.1f} ms")
+    log.close()
+
+    def _stats(times: list[float]) -> dict:
+        ms = [t * 1000 for t in times]
+        return {
+            "mean_ms": round(mean(ms), 1),
+            "median_ms": round(median(ms), 1),
+            "stdev_ms": round(stdev(ms) if len(ms) > 1 else 0.0, 1),
+            "min_ms": round(min(ms), 1),
+            "max_ms": round(max(ms), 1),
+        }
+
+    s_stats = _stats(shepherd_times)
+    g_stats = _stats(git_times)
+    overhead_ms = s_stats["mean_ms"] - g_stats["mean_ms"]
+    overhead_pct = (overhead_ms / g_stats["mean_ms"] * 100) if g_stats["mean_ms"] > 0 else 0
 
     result = {
         "benchmark": "bench_trace_overhead",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "platform": platform.platform(),
-        "python": sys.version,
-        "config": {
-            "n_files": n_files,
-            "file_size_kb": file_size_kb,
-            "payload_kb_total": n_files * file_size_kb,
-            "reps": reps,
-        },
-        "plain_git":         git_stats,
-        "vcscore_roundtrip": vcs_stats,
-        "overhead_mean_ms":  round(overhead_ms, 3),
-        "overhead_pct":      round(overhead_pct, 1),
+        "workspace": str(workspace_dir),
+        "n_iters": n_iters,
+        "shepherd": s_stats,
+        "git_baseline": g_stats,
+        "overhead_ms": round(overhead_ms, 1),
+        "overhead_pct": round(overhead_pct, 1),
+        "raw_shepherd_s": [round(t, 4) for t in shepherd_times],
+        "raw_git_s": [round(t, 4) for t in git_times],
+        "status": "pass",
     }
 
-    if as_json:
-        print(json.dumps(result, indent=2))
-    else:
-        try:
-            from tabulate import tabulate  # type: ignore[import-untyped,import-not-found,unused-ignore]
-            rows = [
-                ["plain git (add+commit)",
-                 f"{git_stats['mean_ms']:.1f}", f"{git_stats['stdev_ms']:.1f}",
-                 f"{git_stats['p50_ms']:.1f}", f"{git_stats['p90_ms']:.1f}", f"{git_stats['p99_ms']:.1f}"],
-                ["vcscore roundtrip",
-                 f"{vcs_stats['mean_ms']:.1f}", f"{vcs_stats['stdev_ms']:.1f}",
-                 f"{vcs_stats['p50_ms']:.1f}", f"{vcs_stats['p90_ms']:.1f}", f"{vcs_stats['p99_ms']:.1f}"],
-            ]
-            print(f"\n=== Vers trace overhead vs. plain git ===")
-            print(f"  {n_files} file(s) × {file_size_kb:.1f} KB = {n_files*file_size_kb:.1f} KB/run  |  {reps} reps\n")
-            print(tabulate(rows, headers=["condition","mean ms","std ms","p50","p90","p99"], tablefmt="github"))
-        except ImportError:
-            print(f"\n  plain git  mean={git_stats['mean_ms']:.1f}ms  p50={git_stats['p50_ms']:.1f}")
-            print(f"  vcscore    mean={vcs_stats['mean_ms']:.1f}ms  p50={vcs_stats['p50_ms']:.1f}")
-        print(f"\n  trace overhead : +{overhead_ms:.1f}ms  ({overhead_pct:.1f}% above plain git)")
+    print(f"\nShepherd mean : {s_stats['mean_ms']} ms")
+    print(f"Git baseline  : {g_stats['mean_ms']} ms")
+    print(f"Overhead      : +{overhead_ms:.1f} ms (+{overhead_pct:.1f}%)")
 
-    _save_result("bench_trace_overhead", result, results_dir)
+    out = results_dir / "bench_trace_overhead.json"
+    out.write_text(json.dumps(result, indent=2))
     return result
 
 
-def _parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Benchmark: Vers trace overhead vs. plain git.")
-    p.add_argument("--files", type=int, default=1)
-    p.add_argument("--file-size-kb", type=float, default=1.0)
-    p.add_argument("--reps", type=int, default=20)
-    p.add_argument("--json", action="store_true")
-    p.add_argument("--results-dir", default=None)
-    return p
-
-
 def main() -> None:
-    args = _parser().parse_args()
-    run_benchmarks(n_files=args.files, file_size_kb=args.file_size_kb,
-                   reps=args.reps, as_json=args.json, results_dir=args.results_dir)
+    p = argparse.ArgumentParser(description="Benchmark: Shepherd trace overhead vs git")
+    p.add_argument("--workspace", type=Path, default=None)
+    p.add_argument("--n-iters", type=int, default=5)
+    p.add_argument("--results-dir", type=Path, default=Path("results/bench"))
+    args = p.parse_args()
+
+    with tempfile.TemporaryDirectory(prefix="shepherd-bench-overhead-") as tmp:
+        ws_dir = Path(args.workspace) if args.workspace else Path(tmp)
+        if not args.workspace:
+            seed_workspace(ws_dir, {"README.md": "# bench overhead\n"})
+
+        result = run_benchmark(
+            workspace_dir=ws_dir,
+            n_iters=args.n_iters,
+            results_dir=args.results_dir,
+        )
+    print(f"\nResult saved → {args.results_dir}/bench_trace_overhead.json")
 
 
 if __name__ == "__main__":

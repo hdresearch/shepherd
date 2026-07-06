@@ -1,209 +1,117 @@
-"""Meta-agent experiment: multi-step refactor with per-step scope isolation.
+"""Experiment 3 — Sequential multi-step refactor pipeline.
 
-Each step in the pipeline is a Vers scope forked from the *current ground*.
-The sub-agent (litellm) implements the step, the overseer evaluates the diff,
-and the scope is either merged (advancing ground) or discarded (halting the
-pipeline cleanly with no partial state leak).
+Architecture (Shepherd-native):
+  Each pipeline step runs as a separate ``workspace.run()`` call against the
+  *current selected workspace state*: step N's output is selected before step
+  N+1 begins, so every step builds on the previous one's merged result.
 
-Pipeline shape
---------------
-::
+  The full history of scope forks, merges, and selections is recorded in the
+  VcsCore substrate (``shepherd run list`` shows every step as a settled run).
 
-    ground ──fork──► scope-step-0  ──merge──► ground'
-    ground' ─fork──► scope-step-1  ──merge──► ground''
-    ground'' ─fork──► scope-step-2  ──merge──► ground'''
-    ...
+Pipeline
+--------
+  Step 1 — write_tests      : Write unit tests for a target function
+  Step 2 — implement         : Implement the function to pass the tests
+  Step 3 — add_docstrings    : Add PEP 257 docstrings to all public symbols
 
-If step K is rejected, ground stays at ground^(K-1) and the pipeline halts.
-Earlier accepted work is preserved exactly — no rollback needed.
+Each step uses ``runtime={"provider": "claude"}`` inside a Vers VM jail.
+The local overseer decides whether to accept each step (score ≥ 5) or abort.
 
 Usage
 -----
 ::
 
     python exp_multi_step_refactor.py \\
-        --model claude-opus-4-5
-
-    # Custom steps:
-    python exp_multi_step_refactor.py \\
-        --steps "Add type hints to all functions in utils.py" \\
-                "Add docstrings to all public functions in utils.py" \\
-                "Add an __all__ list to utils.py" \\
-        --model claude-opus-4-5
+        --function "parse_csv" \\
+        --spec "Parse a CSV string into a list of dicts" \\
+        --results-dir ../results/exp3/
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import logging
-import subprocess
 import sys
 import tempfile
-import textwrap
 import time
-import uuid
-from dataclasses import dataclass, field
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_HERE))
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
-    datefmt="%H:%M:%S",
-)
-logger = logging.getLogger("exp_multi_step_refactor")
+import shepherd as sp
+from ws_init import ensure_shepherd_workspace, seed_workspace
+from overseer import evaluate_runs, overseer_call, EvaluatedRun, _parse_score, _parse_rationale
 
-_DEFAULT_STEPS = [
-    "Create utils.py with a fibonacci function (iterative, no memoization) and a factorial function.",
-    "Refactor utils.py: add type hints to both functions.",
-    "Refactor utils.py: add a docstring to each function explaining its parameters and return value.",
-]
+# ---------------------------------------------------------------------------
+# Task definitions (empty bodies — Claude implements each)
+# ---------------------------------------------------------------------------
+
+def write_tests(
+    repo: sp.May[sp.GitRepo, sp.ReadWrite],
+    function_name: str,
+    spec: str,
+    test_path: str = "test_solution.py",
+) -> None:
+    """Write comprehensive pytest unit tests for ``function_name`` based on ``spec``.
+
+    Save them to ``test_path``.  Tests must be runnable with ``pytest`` without
+    modification.  Cover normal cases, edge cases, and error cases.
+    """
+
+
+def implement_function(
+    repo: sp.May[sp.GitRepo, sp.ReadWrite],
+    function_name: str,
+    spec: str,
+    test_path: str = "test_solution.py",
+    impl_path: str = "solution.py",
+) -> None:
+    """Implement ``function_name`` so that all tests in ``test_path`` pass.
+
+    Write the implementation to ``impl_path``.  Read the existing tests first
+    and make sure every test assertion is satisfied.
+    """
+
+
+def add_docstrings(
+    repo: sp.May[sp.GitRepo, sp.ReadWrite],
+    impl_path: str = "solution.py",
+) -> None:
+    """Add PEP 257-compliant docstrings to every public function and class in ``impl_path``.
+
+    Edit the file in place; do not change any logic.
+    """
 
 
 # ---------------------------------------------------------------------------
-# Result type
+# Helpers
 # ---------------------------------------------------------------------------
 
-@dataclass
-class StepResult:
-    step_index: int
-    instruction: str
-    scope_name: str
-    file_written: str = ""
-    generated_code: str = ""
-    evaluation: str = ""
-    accept: bool = False
-    merged: bool = False
-    discarded: bool = False
-    elapsed_s: float = 0.0
+def _evaluate_single(run: object, task_description: str, path: str, model: str) -> EvaluatedRun:
+    """Score a single run with the local overseer."""
+    cs = run.changeset()  # type: ignore[attr-defined]
+    changed = cs.changed_paths()
+    raw_result = cs.read_file(path)
+    if raw_result is None and changed:
+        raw_result = cs.read_file(changed[0])
+        path = changed[0] if changed else path
+    raw, _ = raw_result if raw_result else (b"", 0)
+    preview = raw.decode("utf-8", errors="replace")[:800]
 
-
-# ---------------------------------------------------------------------------
-# LLM helpers
-# ---------------------------------------------------------------------------
-
-def _llm(prompt: str, model: str, max_tokens: int = 1024) -> str:
-    import litellm  # type: ignore[import-untyped]
-    resp = litellm.completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
+    prompt = (
+        f"Evaluate this output for the task: {task_description}\n\n"
+        f"FILE: {path}\n```\n{preview}\n```\n\n"
+        f"Score 0-10. Reply: SCORE: <n>\nRATIONALE: <one sentence>"
     )
-    return resp.choices[0].message.content or ""
-
-
-def implement_step(instruction: str, existing_code: str, model: str, step_index: int) -> tuple[str, str]:
-    """Sub-agent: generate the updated file content for this step."""
-    context = (
-        f"EXISTING FILE CONTENT:\n```python\n{existing_code}\n```\n\n"
-        if existing_code.strip()
-        else "No existing file — create it from scratch.\n\n"
+    reply = overseer_call(prompt, model=model)
+    return EvaluatedRun(
+        run=run,
+        score=_parse_score(reply),
+        rationale=_parse_rationale(reply),
+        changed_paths=tuple(changed),
+        code_preview=preview,
     )
-    prompt = textwrap.dedent(f"""\
-        You are a software engineer implementing step {step_index} of a refactor pipeline.
-
-        {context}TASK FOR THIS STEP: {instruction}
-
-        Write the complete updated file. Respond with ONLY:
-        FILENAME: <filename, e.g. utils.py>
-        ```python
-        <complete file content>
-        ```
-    """).strip()
-
-    raw = _llm(prompt, model, max_tokens=1200)
-
-    filename = "utils.py"
-    for line in raw.splitlines():
-        if line.startswith("FILENAME:"):
-            filename = line.split(":", 1)[1].strip()
-            break
-
-    lines, in_block = [], False
-    for line in raw.splitlines():
-        if line.startswith("```python"):
-            in_block = True
-            continue
-        if in_block and line.startswith("```"):
-            break
-        if in_block:
-            lines.append(line)
-    code = "\n".join(lines).strip()
-    if not code:
-        after, past = [], False
-        for line in raw.splitlines():
-            if line.startswith("FILENAME:"):
-                past = True
-                continue
-            if past:
-                after.append(line)
-        code = "\n".join(after).strip().strip("`").strip()
-
-    return filename, code
-
-
-def evaluate_step(instruction: str, before: str, after: str, model: str, step_index: int) -> tuple[str, bool]:
-    """Overseer evaluates the diff between before and after this step."""
-    prompt = textwrap.dedent(f"""\
-        You are the Shepherd overseer reviewing step {step_index} of a refactor pipeline.
-
-        STEP INSTRUCTION: {instruction}
-
-        BEFORE:
-        ```python
-        {before[:1500] if before else "(file did not exist)"}
-        ```
-
-        AFTER:
-        ```python
-        {after[:1500]}
-        ```
-
-        Does the change correctly and completely fulfil the step's instruction?
-        Is the code still correct after the change?
-
-        Respond with:
-        DECISION: MERGE  or  DECISION: DISCARD
-        REASON: <one or two sentences>
-    """).strip()
-
-    reasoning = _llm(prompt, model, max_tokens=256)
-    accept = "DECISION: MERGE" in reasoning.upper()
-    return reasoning, accept
-
-
-# ---------------------------------------------------------------------------
-# Workspace setup
-# ---------------------------------------------------------------------------
-
-def _init_git_repo(ws: Path) -> None:
-    if (ws / ".git").exists():
-        return
-    subprocess.run(["git", "init", str(ws)], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.email", "shepherd@exp"], capture_output=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.name", "Shepherd Exp"], capture_output=True)
-    (ws / "README.md").write_text("# Shepherd experiment workspace\n")
-    subprocess.run(["git", "-C", str(ws), "add", "."], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "commit", "-m", "init"], capture_output=True, check=True)
-
-
-def _build_vcscore(ws: Path) -> object:
-    from vcs_core import (
-        DeclarativeFilesystemSubstrate,
-        Store,
-        VcsCore,
-        build_builtin_substrate_context,
-    )
-    store = Store(str(ws / ".vcscore"))
-    if store.is_empty:
-        store.create_root_commit()
-    ctx = build_builtin_substrate_context(store, workspace=ws)
-    fs = DeclarativeFilesystemSubstrate(ctx)
-    return VcsCore(str(ws), substrates=[fs], store=store)
 
 
 # ---------------------------------------------------------------------------
@@ -212,210 +120,188 @@ def _build_vcscore(ws: Path) -> object:
 
 def run_experiment(
     *,
-    workspace: str,
-    steps: list[str],
+    function_name: str,
+    spec: str,
+    workspace_dir: Path | None,
+    results_dir: Path,
     model: str,
-    results_dir: str | None = None,
-) -> None:
-    ws = Path(workspace).resolve()
-    _init_git_repo(ws)
-    vcs = _build_vcscore(ws)
-    vcs.activate()
-    ground = vcs.ground
+) -> dict:
+    results_dir.mkdir(parents=True, exist_ok=True)
+    log_path = results_dir / "exp_multi_step_refactor.log"
+    log = open(log_path, "w")
 
-    logger.info("pipeline  steps=%d  model=%s", len(steps), model)
-    step_results: list[StepResult] = []
-    wall_t0 = time.perf_counter()
+    def _log(msg: str) -> None:
+        print(msg)
+        print(msg, file=log, flush=True)
 
-    # Carry the current committed file state forward between steps.
-    # VcsCore manages its own store and doesn't sync back to the physical
-    # git HEAD that `worktree add` branches from, so we track state in memory.
-    current_files: dict[str, str] = {}  # filename → contents after last merge
+    _log("=== Experiment 3: Multi-Step Refactor Pipeline ===")
+    _log(f"function_name : {function_name}")
+    _log(f"spec          : {spec}")
+    _log(f"model         : {model}")
 
-    for step_idx, instruction in enumerate(steps):
-        logger.info("─── step %d/%d: %s", step_idx + 1, len(steps), instruction[:70])
-        t0 = time.perf_counter()
+    # --- workspace setup ---
+    cleanup_ws = workspace_dir is None
+    _ws_tmp = None
+    if workspace_dir is None:
+        _ws_tmp = tempfile.TemporaryDirectory(prefix="shepherd-exp3-")
+        workspace_dir = Path(_ws_tmp.name)
+        seed_workspace(workspace_dir, {
+            "README.md": f"# Experiment 3: {function_name}\n\nSpec: {spec}\n",
+        })
 
-        uid = uuid.uuid4().hex[:6]
-        scope_name = f"step-{step_idx}-{uid}"
-        branch = f"vers/step/{step_idx}/{uid}"
-        wt_dir = ws.parent / f".vers-worktrees/step{step_idx}-{uid}"
-        wt_dir.mkdir(parents=True, exist_ok=True)
+    _log(f"workspace     : {workspace_dir}")
 
-        # Fork a scope from the current ground
-        subprocess.run(
-            ["git", "-C", str(ws), "worktree", "add", "-b", branch, str(wt_dir)],
-            capture_output=True, check=True,
-        )
-        scope = vcs.fork(ground, scope_name)
-        logger.info("step %d  forked scope=%s", step_idx, scope_name)
+    ws = ensure_shepherd_workspace(workspace_dir)
+    steps_results = []
 
-        # Seed the worktree with all files committed in previous steps
-        for fname, fcode in current_files.items():
-            target = wt_dir / fname
-            target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text(fcode)
+    try:
+        ws.tasks.register(write_tests, task_id="exp3.write_tests", may_default="ReadWrite")
+        ws.tasks.register(implement_function, task_id="exp3.implement_function", may_default="ReadWrite")
+        ws.tasks.register(add_docstrings, task_id="exp3.add_docstrings", may_default="ReadWrite")
 
-        sr = StepResult(step_index=step_idx, instruction=instruction, scope_name=scope_name)
-
-        # Derive existing_code context: the primary Python file (most lines), if any
-        existing_code = ""
-        if current_files:
-            primary = max(current_files.items(), key=lambda kv: len(kv[1].splitlines()))
-            existing_code = primary[1]
-            logger.info("step %d  carrying forward: %s (%d lines)", step_idx, primary[0], len(existing_code.splitlines()))
-
-        # Sub-agent implements the step
-        logger.info("step %d  generating implementation…", step_idx)
-        filename, code = implement_step(instruction, existing_code, model, step_idx)
-        sr.file_written = filename
-        sr.generated_code = code
-
-        target = wt_dir / filename
-        target.parent.mkdir(parents=True, exist_ok=True)
-        before_code = target.read_text() if target.exists() else ""
-        target.write_text(code)
-
-        subprocess.run(["git", "-C", str(wt_dir), "add", "-A"], capture_output=True)
-        subprocess.run(
-            ["git", "-C", str(wt_dir), "commit",
-             "-m", f"step {step_idx}: {instruction[:60]}", "--allow-empty-message"],
-            capture_output=True,
-        )
-
-        # Overseer evaluates the diff
-        logger.info("step %d  overseer evaluating…", step_idx)
-        evaluation, accept = evaluate_step(instruction, before_code, code, model, step_idx)
-        sr.evaluation = evaluation
-        sr.accept = accept
-        sr.elapsed_s = round(time.perf_counter() - t0, 3)
-
-        if accept and code.strip():
-            logger.info("step %d  ACCEPTED — merging", step_idx)
-            vcs.merge(scope, ground)
-            sr.merged = True
-            current_files[filename] = code  # carry forward for next step
-        else:
-            reason = "overseer rejected" if not accept else "agent produced no code"
-            logger.info("step %d  REJECTED (%s) — discarding, halting pipeline", step_idx, reason)
-            vcs.discard(scope)
-            sr.discarded = True
-            step_results.append(sr)
-            subprocess.run(
-                ["git", "-C", str(ws), "worktree", "remove", "--force", str(wt_dir)],
-                capture_output=True,
-            )
-            logger.info("pipeline halted at step %d; ground holds steps 0..%d", step_idx, step_idx - 1)
-            break
-
-        subprocess.run(
-            ["git", "-C", str(ws), "worktree", "remove", "--force", str(wt_dir)],
-            capture_output=True,
-        )
-        step_results.append(sr)
-
-    wall_elapsed = time.perf_counter() - wall_t0
-    vcs.deactivate()
-
-    completed = sum(1 for r in step_results if r.merged)
-
-    # ── Report ──
-    print("\n" + "=" * 70)
-    print("MULTI-STEP PIPELINE RESULTS")
-    print("=" * 70)
-    print(f"  steps total  : {len(steps)}")
-    print(f"  completed    : {completed}")
-    print(f"  model        : {model}")
-    print(f"  wall time    : {wall_elapsed:.1f}s")
-    print()
-    for r in step_results:
-        status = "✓ MERGED" if r.merged else "✗ DISCARDED"
-        print(f"  [{status}]  step {r.step_index}  scope={r.scope_name}  ({r.elapsed_s}s)")
-        print(f"    instruction : {r.instruction[:80]}")
-        print(f"    file        : {r.file_written}")
-        print(f"    decision    : {r.evaluation.strip()[:200]}")
-        if r.generated_code:
-            first = r.generated_code.strip().splitlines()[0][:80]
-            print(f"    code[0]     : {first}")
-        print()
-
-    summary = {
-        "experiment": "exp_multi_step_refactor",
-        "steps": steps,
-        "model": model,
-        "total_elapsed_s": round(wall_elapsed, 2),
-        "completed": completed,
-        "halted": completed < len(steps),
-        "step_results": [
+        pipeline = [
             {
-                "step_index": r.step_index,
-                "instruction": r.instruction,
-                "scope_name": r.scope_name,
-                "file_written": r.file_written,
-                "merged": r.merged,
-                "discarded": r.discarded,
-                "elapsed_s": r.elapsed_s,
-                "code_lines": len(r.generated_code.splitlines()),
-                "evaluation": r.evaluation,
-                "generated_code": r.generated_code,
-            }
-            for r in step_results
-        ],
-    }
-    _save_result("exp_multi_step_refactor", summary, ws, results_dir)
+                "step": 1,
+                "name": "write_tests",
+                "task_id": "exp3.write_tests",
+                "args": {"function_name": function_name, "spec": spec, "test_path": "test_solution.py"},
+                "primary_output": "test_solution.py",
+                "description": f"Write tests for {function_name}: {spec}",
+            },
+            {
+                "step": 2,
+                "name": "implement_function",
+                "task_id": "exp3.implement_function",
+                "args": {"function_name": function_name, "spec": spec,
+                         "test_path": "test_solution.py", "impl_path": "solution.py"},
+                "primary_output": "solution.py",
+                "description": f"Implement {function_name} passing all tests",
+            },
+            {
+                "step": 3,
+                "name": "add_docstrings",
+                "task_id": "exp3.add_docstrings",
+                "args": {"impl_path": "solution.py"},
+                "primary_output": "solution.py",
+                "description": "Add PEP 257 docstrings to all public symbols",
+            },
+        ]
 
+        overall_t0 = time.perf_counter()
 
-def _save_result(name: str, data: dict, ws: Path, results_dir: str | None) -> None:
-    import datetime
-    payload = json.dumps(data, indent=2)
-    ws_path = ws / f"{name}.json"
-    ws_path.write_text(payload)
-    print(f"Result  → {ws_path}")
-    if results_dir:
-        rd = Path(results_dir)
-        rd.mkdir(parents=True, exist_ok=True)
-        ts = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-        out = rd / f"{name}_{ts}.json"
-        out.write_text(payload)
-        print(f"Persisted → {out}")
+        for step in pipeline:
+            _log(f"\n--- Step {step['step']}: {step['name']} ---")
+            t0 = time.perf_counter()
+            try:
+                run = ws.run(
+                    step["task_id"],
+                    repo=ws.git_repo(),
+                    args=step["args"],
+                    placement="auto",
+                    runtime={"provider": "claude"},
+                )
+                elapsed = time.perf_counter() - t0
+                changed = run.changeset().changed_paths()
+                _log(f"  run_ref  : {run.run_ref}")
+                _log(f"  changed  : {list(changed)}")
+                _log(f"  elapsed  : {elapsed:.2f}s")
+
+                # Overseer evaluation
+                ev = _evaluate_single(run, step["description"], step["primary_output"], model)
+                _log(f"  score    : {ev.score:.1f} — {ev.rationale}")
+
+                if ev.score >= 5.0:
+                    run.output().select()
+                    _log(f"  → Selected ✅")
+                    steps_results.append({
+                        "step": step["step"],
+                        "name": step["name"],
+                        "run_ref": run.run_ref,
+                        "status": "selected",
+                        "score": ev.score,
+                        "rationale": ev.rationale,
+                        "changed_paths": list(changed),
+                        "elapsed_s": round(elapsed, 3),
+                    })
+                else:
+                    run.output().discard()
+                    _log(f"  → Discarded ❌ (score too low); aborting pipeline.")
+                    steps_results.append({
+                        "step": step["step"],
+                        "name": step["name"],
+                        "run_ref": run.run_ref,
+                        "status": "discarded",
+                        "score": ev.score,
+                        "rationale": ev.rationale,
+                        "changed_paths": list(changed),
+                        "elapsed_s": round(elapsed, 3),
+                    })
+                    break
+
+            except Exception as exc:
+                elapsed = time.perf_counter() - t0
+                _log(f"  ERROR: {exc}")
+                steps_results.append({
+                    "step": step["step"],
+                    "name": step["name"],
+                    "status": "error",
+                    "error": str(exc),
+                    "elapsed_s": round(elapsed, 3),
+                })
+                break
+
+        total_elapsed = time.perf_counter() - overall_t0
+        n_selected = sum(1 for s in steps_results if s.get("status") == "selected")
+        pipeline_complete = n_selected == len(pipeline)
+        _log(f"\nPipeline: {n_selected}/{len(pipeline)} steps selected, "
+             f"total {total_elapsed:.2f}s")
+
+        result = {
+            "experiment": "exp_multi_step_refactor",
+            "function_name": function_name,
+            "spec": spec,
+            "model": model,
+            "workspace": str(workspace_dir),
+            "steps": steps_results,
+            "n_steps_total": len(pipeline),
+            "n_steps_selected": n_selected,
+            "pipeline_complete": pipeline_complete,
+            "total_elapsed_s": round(total_elapsed, 3),
+            "status": "pass",
+        }
+    finally:
+        ws.close()
+        if cleanup_ws and _ws_tmp is not None:
+            _ws_tmp.cleanup()
+        log.close()
+
+    out = results_dir / "exp_multi_step_refactor.json"
+    out.write_text(json.dumps(result, indent=2))
+    return result
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
-def _parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        description="Multi-step refactor: each step gets an isolated Vers scope.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
-    )
-    p.add_argument("--steps", nargs="+", default=_DEFAULT_STEPS,
-                   help="Ordered step instructions")
-    p.add_argument("--model", default="claude-opus-4-5")
-    p.add_argument("--workspace", default=None,
-                   help="Path to a git repo (default: fresh tmpdir)")
-    p.add_argument("--results-dir", default=None,
-                   help="Directory to persist JSON results for later review")
-    return p
-
-
 def main() -> None:
-    args = _parser().parse_args()
-    if args.workspace:
-        ws, cleanup = args.workspace, False
-    else:
-        ws = tempfile.mkdtemp(prefix="shepherd-exp-pipeline-")
-        cleanup = True
-        logger.info("temporary workspace: %s", ws)
-    try:
-        run_experiment(workspace=ws, steps=args.steps, model=args.model,
-                       results_dir=args.results_dir)
-    finally:
-        if cleanup:
-            import shutil
-            shutil.rmtree(ws, ignore_errors=True)
-            shutil.rmtree(Path(ws).parent / ".vers-worktrees", ignore_errors=True)
+    p = argparse.ArgumentParser(description="Experiment 3: Multi-step refactor pipeline")
+    p.add_argument("--function", dest="function_name", default="parse_csv")
+    p.add_argument("--spec", default="Parse a CSV string into a list of dicts, one per row")
+    p.add_argument("--workspace", type=Path, default=None)
+    p.add_argument("--results-dir", type=Path, default=Path("results/exp3"))
+    p.add_argument("--model", default="claude-opus-4-5")
+    args = p.parse_args()
+
+    result = run_experiment(
+        function_name=args.function_name,
+        spec=args.spec,
+        workspace_dir=args.workspace,
+        results_dir=args.results_dir,
+        model=args.model,
+    )
+    print(f"\nResult saved → {args.results_dir}/exp_multi_step_refactor.json")
+    print(f"Pipeline complete: {result['pipeline_complete']}")
 
 
 if __name__ == "__main__":

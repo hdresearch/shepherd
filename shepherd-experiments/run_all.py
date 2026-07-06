@@ -1,359 +1,304 @@
-"""Run all shepherd-experiments and persist results to results/<timestamp>/.
+"""Run all Shepherd experiments and benchmarks; persist results to a timestamped directory.
 
-Produces:
-  results/<timestamp>/
-    bench_scope_lifecycle.json
-    bench_trace_overhead.json
-    bench_parallel_agents.json
-    exp_coding_task.json
-    exp_parallel_search.json
-    exp_multi_step_refactor.json
-    summary.md               ← human-readable overview of every run
-    <name>.log               ← full stdout+stderr for each script
+Each experiment uses the Shepherd-native substrate:
+  - Sub-agents run inside Vers VM jails via ``workspace.run(..., runtime={"provider": "claude"})``
+  - ShepherdRunDriver handles fork/merge/discard through VcsCore
+  - The local overseer uses the Anthropic SDK (ANTHROPIC_API_KEY must be set)
+
+Requirements
+------------
+- Jail-capable host: Linux with Landlock (Vers VMs) or macOS with Seatbelt
+- ``claude`` CLI on PATH
+- ``ANTHROPIC_API_KEY`` in the environment
+- ``uv run python3 run_all.py`` (or ``python3 run_all.py`` inside the uv venv)
 
 Usage
 -----
 ::
 
-    # Run everything with defaults:
-    uv run python shepherd-experiments/run_all.py
-
-    # Custom model / agent count:
-    uv run python shepherd-experiments/run_all.py \\
-        --model claude-opus-4-5 \\
-        --n-agents 3 \\
-        --bench-reps 30
-
-    # Skip the meta-agent experiments (benchmarks only):
-    uv run python shepherd-experiments/run_all.py --benchmarks-only
-
-    # Skip benchmarks (experiments only):
-    uv run python shepherd-experiments/run_all.py --experiments-only
+    uv run python3 run_all.py
+    uv run python3 run_all.py --results-dir my_results/ --model claude-opus-4-5
+    uv run python3 run_all.py --skip-benchmarks   # experiments only
+    uv run python3 run_all.py --skip-experiments  # benchmarks only
 """
 
 from __future__ import annotations
 
 import argparse
-import datetime
 import json
 import os
 import subprocess
 import sys
-import textwrap
 import time
+import traceback
+from datetime import datetime, timezone
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-_RESULTS_ROOT = _HERE / "results"
+sys.path.insert(0, str(_HERE))
+
+# ---------------------------------------------------------------------------
+# Guard: jail capability check
+# ---------------------------------------------------------------------------
+
+def _check_jail() -> bool:
+    """Return True if the current host can run jailed workspace.run() calls."""
+    try:
+        from vcs_core.runtime_api import native_jail_available
+        return native_jail_available()
+    except Exception:
+        return False
+
+
+def _check_claude_cli() -> bool:
+    """Return True if the claude CLI is available on PATH."""
+    import shutil
+    return shutil.which("claude") is not None
+
+
+def _check_anthropic_key() -> bool:
+    return bool(os.environ.get("ANTHROPIC_API_KEY"))
 
 
 # ---------------------------------------------------------------------------
-# Runner helpers
+# Experiment runners (imported lazily to keep startup fast)
 # ---------------------------------------------------------------------------
 
-def _run(
-    label: str,
-    cmd: list[str],
-    run_dir: Path,
-) -> tuple[bool, float]:
-    """Run a subprocess, tee output to console + log file. Return (ok, elapsed)."""
-    log_path = run_dir / f"{label}.log"
-    print(f"\n{'='*70}")
-    print(f"  {label}")
-    print(f"{'='*70}")
-    t0 = time.perf_counter()
-    with log_path.open("w") as log:
-        proc = subprocess.run(
-            cmd,
-            cwd=str(_HERE),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+def _run_exp_coding_task(results_dir: Path, model: str) -> dict:
+    from meta_agent.exp_coding_task import run_experiment
+    return run_experiment(
+        task="Add a fibonacci function with memoization to utils.py",
+        n_agents=3,
+        workspace_dir=None,
+        results_dir=results_dir / "exp_coding_task",
+        model=model,
+    )
+
+
+def _run_exp_parallel_search(results_dir: Path, model: str) -> dict:
+    from meta_agent.exp_parallel_search import run_experiment
+    return run_experiment(
+        problem="Implement a thread-safe LRU cache in Python",
+        n_hypotheses=3,
+        workspace_dir=None,
+        results_dir=results_dir / "exp_parallel_search",
+        model=model,
+    )
+
+
+def _run_exp_multi_step(results_dir: Path, model: str) -> dict:
+    from meta_agent.exp_multi_step_refactor import run_experiment
+    return run_experiment(
+        function_name="parse_csv",
+        spec="Parse a CSV string into a list of dicts, one per row",
+        workspace_dir=None,
+        results_dir=results_dir / "exp_multi_step_refactor",
+        model=model,
+    )
+
+
+def _run_bench_lifecycle(results_dir: Path) -> dict:
+    import tempfile
+    from benchmarks.bench_scope_lifecycle import run_benchmark
+    from ws_init import seed_workspace
+    with tempfile.TemporaryDirectory(prefix="shepherd-bench-lc-") as tmp:
+        ws_dir = Path(tmp)
+        seed_workspace(ws_dir, {"README.md": "# bench\n"})
+        return run_benchmark(
+            workspace_dir=ws_dir,
+            n_select=3,
+            n_discard=3,
+            results_dir=results_dir / "bench_scope_lifecycle",
         )
-        log.write(proc.stdout)
-        # Also print to terminal
-        for line in proc.stdout.splitlines():
-            print(f"  {line}")
-    elapsed = time.perf_counter() - t0
-    ok = proc.returncode == 0
-    status = "✓ OK" if ok else f"✗ FAILED (exit {proc.returncode})"
-    print(f"\n  [{status}]  {elapsed:.1f}s  →  log: {log_path.relative_to(_HERE)}")
-    return ok, elapsed
 
 
-def _load_json(run_dir: Path, name: str) -> dict | None:
-    candidates = sorted(run_dir.glob(f"{name}_*.json"))
-    if not candidates:
-        # Also try without timestamp suffix (direct writes)
-        direct = run_dir / f"{name}.json"
-        if direct.exists():
-            return json.loads(direct.read_text())
-        return None
-    return json.loads(candidates[-1].read_text())
+def _run_bench_overhead(results_dir: Path) -> dict:
+    import tempfile
+    from benchmarks.bench_trace_overhead import run_benchmark
+    from ws_init import seed_workspace
+    with tempfile.TemporaryDirectory(prefix="shepherd-bench-oh-") as tmp:
+        ws_dir = Path(tmp)
+        seed_workspace(ws_dir, {"README.md": "# bench overhead\n"})
+        return run_benchmark(
+            workspace_dir=ws_dir,
+            n_iters=3,
+            results_dir=results_dir / "bench_trace_overhead",
+        )
 
 
-# ---------------------------------------------------------------------------
-# Summary generator
-# ---------------------------------------------------------------------------
-
-def _make_summary(run_dir: Path, run_ts: str, timings: dict[str, tuple[bool, float]]) -> str:
-    lines: list[str] = []
-
-    def h(text: str, level: int = 2) -> None:
-        lines.append(("#" * level) + " " + text)
-
-    def p(text: str) -> None:
-        lines.append(text)
-
-    def blank() -> None:
-        lines.append("")
-
-    h("Shepherd Experiment Run", 1)
-    blank()
-    p(f"**Timestamp:** `{run_ts}`  ")
-    p(f"**Platform:** `{_platform_str()}`  ")
-    p(f"**Python:** `{sys.version.split()[0]}`")
-    blank()
-
-    # ── Status table ──
-    h("Run Status")
-    blank()
-    p("| Experiment / Benchmark | Status | Wall time |")
-    p("|---|---|---|")
-    for name, (ok, elapsed) in timings.items():
-        status = "✅ OK" if ok else "❌ FAILED"
-        p(f"| `{name}` | {status} | {elapsed:.1f}s |")
-    blank()
-
-    # ── Benchmark results ──
-    h("Benchmark Results")
-    blank()
-
-    scope = _load_json(run_dir, "bench_scope_lifecycle")
-    if scope:
-        h("Scope lifecycle latency", 3)
-        blank()
-        p("| Operation | mean ms | p50 ms | p90 ms | p99 ms |")
-        p("|---|---|---|---|---|")
-        for key, label in [
-            ("cold_startup", "cold startup"),
-            ("fork", "fork"),
-            ("discard", "discard"),
-            ("roundtrip_fork_write_merge", "roundtrip (fork+write+merge)"),
-        ]:
-            s = scope.get(key, {})
-            if s:
-                p(f"| {label} | {s['mean_ms']:.1f} | {s['p50_ms']:.1f} | {s['p90_ms']:.1f} | {s['p99_ms']:.1f} |")
-        blank()
-
-    trace = _load_json(run_dir, "bench_trace_overhead")
-    if trace:
-        h("Trace overhead vs. plain git", 3)
-        blank()
-        cfg = trace.get("config", {})
-        p(f"Config: {cfg.get('n_files')} file(s) × {cfg.get('file_size_kb')} KB, {cfg.get('reps')} reps")
-        blank()
-        p("| Condition | mean ms | p50 ms | p90 ms |")
-        p("|---|---|---|---|")
-        for key, label in [("plain_git", "plain git (add+commit)"),
-                            ("vcscore_roundtrip", "VcsCore roundtrip")]:
-            s = trace.get(key, {})
-            if s:
-                p(f"| {label} | {s['mean_ms']:.1f} | {s['p50_ms']:.1f} | {s['p90_ms']:.1f} |")
-        p(f"\n**Trace overhead:** +{trace.get('overhead_mean_ms', '?')} ms "
-          f"({trace.get('overhead_pct', '?')}% above plain git)")
-        blank()
-
-    par = _load_json(run_dir, "bench_parallel_agents")
-    if par:
-        h("Parallel vs. sequential speedup", 3)
-        blank()
-        p(f"n_agents={par.get('n_agents')}  stub_duration={par.get('stub_agent_duration_s')}s each")
-        blank()
-        p("| Mode | Wall time | Speedup | Efficiency |")
-        p("|---|---|---|---|")
-        p(f"| sequential | {par.get('sequential_wall_s')}s | 1.00× | 100% |")
-        p(f"| parallel   | {par.get('parallel_wall_s')}s | {par.get('speedup')}× | {par.get('efficiency_pct')}% |")
-        p(f"\nScope setup overhead (mean): {par.get('scope_setup_mean_ms')} ms")
-        p(f"Overhead above critical path: {par.get('overhead_above_critical_path_ms')} ms")
-        blank()
-
-    # ── Meta-agent experiment results ──
-    h("Meta-Agent Experiment Results")
-    blank()
-
-    coding = _load_json(run_dir, "exp_coding_task")
-    if coding:
-        h("exp_coding_task", 3)
-        blank()
-        p(f"**Task:** {coding.get('task')}")
-        p(f"**Model:** `{coding.get('model')}`  "
-          f"**n_agents:** {coding.get('n_agents')}  "
-          f"**wall time:** {coding.get('wall_time_s')}s")
-        blank()
-        p("| Agent | Scope | File | Decision | Lines | Time |")
-        p("|---|---|---|---|---|---|")
-        for r in coding.get("results", []):
-            decision = "✅ merged" if r.get("merged") else "❌ discarded"
-            p(f"| {r.get('agent_index')} | `{r.get('scope_name')}` | `{r.get('file_written')}` "
-              f"| {decision} | {r.get('code_lines')} | {r.get('elapsed_s')}s |")
-        blank()
-
-    search = _load_json(run_dir, "exp_parallel_search")
-    if search:
-        h("exp_parallel_search", 3)
-        blank()
-        p(f"**Goal:** {search.get('goal')}")
-        p(f"**Model:** `{search.get('model')}`  "
-          f"**n_agents:** {search.get('n_agents')}  "
-          f"**selected:** #{search.get('selected_index')}  "
-          f"**wall time:** {search.get('wall_time_s')}s")
-        blank()
-        p("| # | Hypothesis (truncated) | File | Decision | Lines | Time |")
-        p("|---|---|---|---|---|---|")
-        for r in search.get("results", []):
-            hyp = r.get("hypothesis", "")[:70].replace("|", "\\|")
-            decision = "★ merged" if r.get("merged") else "discarded"
-            p(f"| {r.get('index')} | {hyp}… | `{r.get('file_written')}` "
-              f"| {decision} | {r.get('code_lines')} | {r.get('elapsed_s')}s |")
-        blank()
-
-    pipeline = _load_json(run_dir, "exp_multi_step_refactor")
-    if pipeline:
-        h("exp_multi_step_refactor", 3)
-        blank()
-        p(f"**Model:** `{pipeline.get('model')}`  "
-          f"**steps:** {len(pipeline.get('steps', []))}  "
-          f"**completed:** {pipeline.get('completed')}  "
-          f"**halted:** {pipeline.get('halted')}  "
-          f"**wall time:** {pipeline.get('total_elapsed_s')}s")
-        blank()
-        p("| Step | Instruction (truncated) | File | Decision | Lines | Time |")
-        p("|---|---|---|---|---|---|")
-        for r in pipeline.get("step_results", []):
-            instr = r.get("instruction", "")[:65].replace("|", "\\|")
-            decision = "✅ merged" if r.get("merged") else "❌ discarded"
-            p(f"| {r.get('step_index')} | {instr}… | `{r.get('file_written')}` "
-              f"| {decision} | {r.get('code_lines')} | {r.get('elapsed_s')}s |")
-        blank()
-
-    h("Files in This Run")
-    blank()
-    for f in sorted(run_dir.iterdir()):
-        size = f.stat().st_size
-        p(f"- `{f.name}` ({size:,} bytes)")
-    blank()
-
-    return "\n".join(lines)
-
-
-def _platform_str() -> str:
-    import platform
-    return f"{platform.system()} {platform.release()} ({platform.machine()})"
+def _run_bench_agents(results_dir: Path) -> dict:
+    import tempfile
+    from benchmarks.bench_parallel_agents import run_benchmark
+    from ws_init import seed_workspace
+    with tempfile.TemporaryDirectory(prefix="shepherd-bench-ag-") as tmp:
+        ws_dir = Path(tmp)
+        seed_workspace(ws_dir, {"README.md": "# bench agents\n"})
+        return run_benchmark(
+            workspace_dir=ws_dir,
+            batch_sizes=[1, 2, 4],
+            results_dir=results_dir / "bench_parallel_agents",
+        )
 
 
 # ---------------------------------------------------------------------------
-# Main
+# Orchestrator
 # ---------------------------------------------------------------------------
+
+EXPERIMENTS = [
+    ("exp_coding_task",       _run_exp_coding_task,   True),   # (name, fn, is_experiment)
+    ("exp_parallel_search",   _run_exp_parallel_search, True),
+    ("exp_multi_step_refactor", _run_exp_multi_step,  True),
+    ("bench_scope_lifecycle", _run_bench_lifecycle,   False),
+    ("bench_trace_overhead",  _run_bench_overhead,    False),
+    ("bench_parallel_agents", _run_bench_agents,      False),
+]
+
 
 def main() -> None:
-    p = argparse.ArgumentParser(
-        description="Run all shepherd-experiments and persist results.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
-    )
+    p = argparse.ArgumentParser(description="Run all Shepherd experiments and benchmarks")
+    p.add_argument("--results-dir", type=Path, default=None,
+                   help="Output directory (default: results/<timestamp>)")
     p.add_argument("--model", default="claude-opus-4-5",
-                   help="LLM model for meta-agent experiments (default: claude-opus-4-5)")
-    p.add_argument("--n-agents", type=int, default=3,
-                   help="Sub-agents per meta-agent experiment (default: 3)")
-    p.add_argument("--bench-reps", type=int, default=20,
-                   help="Repetitions for benchmarks (default: 20)")
-    p.add_argument("--agent-duration", type=float, default=1.0,
-                   help="Stub agent sleep duration for parallel bench (default: 1.0s)")
-    p.add_argument("--benchmarks-only", action="store_true")
-    p.add_argument("--experiments-only", action="store_true")
+                   help="Anthropic model for the local overseer")
+    p.add_argument("--skip-experiments", action="store_true")
+    p.add_argument("--skip-benchmarks", action="store_true")
+    p.add_argument("--no-jail-check", action="store_true",
+                   help="Skip preflight jail capability check (for CI/testing)")
     args = p.parse_args()
 
-    ts = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-    run_dir = _RESULTS_ROOT / ts
-    run_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
+    results_dir = args.results_dir or (Path("results") / ts)
+    results_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Results directory: {run_dir}")
+    print(f"Results directory: {results_dir}")
+    print()
 
-    py = sys.executable
-    rd = str(run_dir)
-    timings: dict[str, tuple[bool, float]] = {}
+    # --- preflight checks ---
+    preflight_ok = True
 
-    # ── Benchmarks ──
-    if not args.experiments_only:
-        ok, t = _run("bench_scope_lifecycle", [
-            py, "benchmarks/bench_scope_lifecycle.py",
-            "--reps", str(args.bench_reps),
-            "--results-dir", rd,
-        ], run_dir)
-        timings["bench_scope_lifecycle"] = (ok, t)
+    if not _check_anthropic_key():
+        print("❌ ANTHROPIC_API_KEY is not set")
+        preflight_ok = False
+    else:
+        print("✅ ANTHROPIC_API_KEY set")
 
-        ok, t = _run("bench_trace_overhead", [
-            py, "benchmarks/bench_trace_overhead.py",
-            "--reps", str(args.bench_reps),
-            "--results-dir", rd,
-        ], run_dir)
-        timings["bench_trace_overhead"] = (ok, t)
+    if not _check_claude_cli():
+        print("❌ claude CLI not found on PATH")
+        preflight_ok = False
+    else:
+        print("✅ claude CLI found")
 
-        ok, t = _run("bench_parallel_agents", [
-            py, "benchmarks/bench_parallel_agents.py",
-            "--n-agents", str(args.n_agents),
-            "--agent-duration", str(args.agent_duration),
-            "--results-dir", rd,
-        ], run_dir)
-        timings["bench_parallel_agents"] = (ok, t)
+    if not args.no_jail_check:
+        if not _check_jail():
+            print("❌ No jail backend available (need Linux+Landlock or macOS+Seatbelt)")
+            print("   Run on a Vers VM, or pass --no-jail-check to skip this check.")
+            preflight_ok = False
+        else:
+            print("✅ Native jail backend available")
 
-    # ── Meta-agent experiments ──
-    if not args.benchmarks_only:
-        ok, t = _run("exp_coding_task", [
-            py, "meta_agent/exp_coding_task.py",
-            "--task", "Add a fibonacci function with memoization to utils.py",
-            "--n-agents", str(args.n_agents),
-            "--model", args.model,
-            "--results-dir", rd,
-        ], run_dir)
-        timings["exp_coding_task"] = (ok, t)
+    print()
+    if not preflight_ok:
+        print("Preflight checks failed. Aborting.")
+        sys.exit(1)
 
-        ok, t = _run("exp_parallel_search", [
-            py, "meta_agent/exp_parallel_search.py",
-            "--goal", "Implement a retry strategy for an HTTP client",
-            "--n-agents", str(args.n_agents),
-            "--model", args.model,
-            "--results-dir", rd,
-        ], run_dir)
-        timings["exp_parallel_search"] = (ok, t)
+    # --- run suite ---
+    summary_rows = []
+    all_t0 = time.perf_counter()
 
-        ok, t = _run("exp_multi_step_refactor", [
-            py, "meta_agent/exp_multi_step_refactor.py",
-            "--model", args.model,
-            "--results-dir", rd,
-        ], run_dir)
-        timings["exp_multi_step_refactor"] = (ok, t)
+    for name, fn, is_experiment in EXPERIMENTS:
+        if is_experiment and args.skip_experiments:
+            print(f"  SKIP  {name}")
+            continue
+        if not is_experiment and args.skip_benchmarks:
+            print(f"  SKIP  {name}")
+            continue
 
-    # ── Summary ──
-    summary_md = _make_summary(run_dir, ts, timings)
-    summary_path = run_dir / "summary.md"
-    summary_path.write_text(summary_md)
+        print(f"\n{'='*60}")
+        print(f"  {name}")
+        print(f"{'='*60}")
+        t0 = time.perf_counter()
+        try:
+            if is_experiment:
+                result = fn(results_dir, args.model)
+            else:
+                result = fn(results_dir)
+            elapsed = time.perf_counter() - t0
+            status = result.get("status", "unknown")
+            print(f"\n  → {status.upper()}  ({elapsed:.1f}s)")
+            summary_rows.append({"name": name, "status": status, "elapsed_s": round(elapsed, 1)})
+        except Exception:
+            elapsed = time.perf_counter() - t0
+            tb = traceback.format_exc()
+            print(f"\n  → ERROR  ({elapsed:.1f}s)")
+            print(tb)
+            summary_rows.append({
+                "name": name,
+                "status": "error",
+                "elapsed_s": round(elapsed, 1),
+                "traceback": tb,
+            })
 
-    total = sum(t for _, t in timings.values())
-    passed = sum(1 for ok, _ in timings.values() if ok)
-    failed = len(timings) - passed
+    total_elapsed = time.perf_counter() - all_t0
 
-    print(f"\n{'='*70}")
-    print(f"  ALL DONE  —  {passed}/{len(timings)} passed  |  {total:.1f}s total")
-    print(f"  Run dir  :  {run_dir}")
-    print(f"  Summary  :  {summary_path}")
-    if failed:
-        print(f"\n  FAILED:")
-        for name, (ok, _) in timings.items():
-            if not ok:
-                print(f"    ✗  {name}  (see {run_dir / name}.log)")
-    print(f"{'='*70}\n")
+    # --- summary ---
+    n_pass = sum(1 for r in summary_rows if r["status"] == "pass")
+    n_total = len(summary_rows)
+
+    summary = {
+        "timestamp": ts,
+        "model": args.model,
+        "results_dir": str(results_dir),
+        "total_elapsed_s": round(total_elapsed, 1),
+        "passed": n_pass,
+        "total": n_total,
+        "rows": summary_rows,
+    }
+    (results_dir / "summary.json").write_text(json.dumps(summary, indent=2))
+
+    # Human-readable summary.md
+    md_lines = [
+        f"# Shepherd Experiment Results",
+        f"",
+        f"**Timestamp:** {ts}  ",
+        f"**Model:** {args.model}  ",
+        f"**Passed:** {n_pass}/{n_total}  ",
+        f"**Total time:** {total_elapsed:.1f}s",
+        f"",
+        f"## Results",
+        f"",
+        f"| Experiment | Status | Time |",
+        f"|---|---|---|",
+    ]
+    for r in summary_rows:
+        icon = "✅" if r["status"] == "pass" else "❌"
+        md_lines.append(f"| {r['name']} | {icon} {r['status']} | {r['elapsed_s']}s |")
+
+    md_lines += [
+        f"",
+        f"## Architecture",
+        f"",
+        f"Sub-agents run inside **Vers VM jails** via:",
+        f"```",
+        f"workspace.run(task_id, repo=ws.git_repo(),",
+        f"    placement='auto',           # → 'jail' on Linux+Landlock",
+        f"    runtime={{'provider': 'claude'}})  # Claude CLI in the jail",
+        f"```",
+        f"",
+        f"Execution path: `workspace.run()` → `ShepherdRunDriver.prepare_bound()`",
+        f"→ `VcsCore.execute_recorded('runtime', 'run', ...)` → fork scope →",
+        f"Claude writes to `execution.working_path` → merge (success) / discard (failure).",
+        f"",
+        f"The overseer runs locally via the Anthropic SDK and reads retained",
+        f"outputs through `run.changeset().read_file(path)` before settling.",
+    ]
+    (results_dir / "summary.md").write_text("\n".join(md_lines) + "\n")
+
+    print(f"\n{'='*60}")
+    print(f"  {n_pass}/{n_total} passed  ({total_elapsed:.1f}s)")
+    print(f"  Results: {results_dir}/")
+    print(f"{'='*60}")
+
+    sys.exit(0 if n_pass == n_total else 1)
 
 
 if __name__ == "__main__":

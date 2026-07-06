@@ -1,28 +1,31 @@
-"""Meta-agent experiment: N sub-agents tackle a coding task via Vers-isolated scopes.
+"""Experiment 1 — N sub-agents on the same coding task; overseer selects best.
 
-Each sub-agent is a litellm call that generates code, which is written into an
-isolated git worktree registered as a VcsCore scope. The local overseer then
-evaluates each diff and merges the best result (or discards if none meet the bar).
+Architecture (Shepherd-native):
+  - Sub-agents run inside Vers VMs via ``workspace.run(..., runtime={"provider": "claude"})``
+  - Each run forks a VcsCore scope; Claude writes code to the scope's working_path
+  - VcsCore merges the scope on success, retaining the output pending settle
+  - The overseer (local Anthropic SDK call) reads each changeset, scores, and
+    calls ``output.select()`` on the best / ``output.discard()`` on the rest
+  - The full trace (fork → Claude → merge → select) is recorded in the
+    Shepherd substrate at ``.vcscore``
 
-VcsCore allows only one live child scope per parent at a time, so agents run
-sequentially (fork → generate → write → commit → evaluate → merge/discard).
-This still demonstrates the paper's core reversibility and programmable
-meta-agent claims: the overseer is a real LLM making real merge/discard
-decisions, and the trace records every outcome durably.
+Sub-agents never see each other's work; the overseer is the only component
+allowed to read and settle outputs.
 
 Usage
 -----
 ::
 
+    # Run 3 agents on a fibonacci task (needs a jail-capable host, e.g. Linux VM):
     python exp_coding_task.py \\
         --task "Add a fibonacci function with memoization to utils.py" \\
         --n-agents 3 \\
-        --model claude-opus-4-5
+        --results-dir ../results/exp1/
 
-    # Point at an existing repo:
+    # Use an existing repository as the workspace:
     python exp_coding_task.py \\
-        --task "Add input validation to register() in auth.py" \\
-        --workspace /path/to/my/repo \\
+        --task "Add input validation to the register() function in auth.py" \\
+        --workspace /path/to/repo \\
         --n-agents 2
 """
 
@@ -30,265 +33,33 @@ from __future__ import annotations
 
 import argparse
 import json
-import logging
-import subprocess
 import sys
 import tempfile
-import textwrap
 import time
-import uuid
-from dataclasses import dataclass, field
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+_HERE = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_HERE))
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
-    datefmt="%H:%M:%S",
-)
-logger = logging.getLogger("exp_coding_task")
-
+import shepherd as sp
+from ws_init import ensure_shepherd_workspace, seed_workspace
+from overseer import evaluate_runs, select_best
 
 # ---------------------------------------------------------------------------
-# Result type
+# Task definition (empty body — Claude fills it in)
 # ---------------------------------------------------------------------------
 
-@dataclass
-class AgentResult:
-    agent_index: int
-    scope_name: str
-    instruction: str
-    generated_code: str = ""
-    file_written: str = ""
-    diff_text: str = ""
-    merged: bool = False
-    discarded: bool = False
-    evaluation: str = ""
-    accept: bool = False
-    elapsed_s: float = 0.0
+def write_solution(
+    repo: sp.May[sp.GitRepo, sp.ReadWrite],
+    task_description: str,
+    output_path: str = "solution.py",
+) -> None:
+    """Read the task description and produce a complete Python implementation.
 
-
-# ---------------------------------------------------------------------------
-# LLM helpers (litellm with Anthropic)
-# ---------------------------------------------------------------------------
-
-def _llm(prompt: str, model: str, max_tokens: int = 1024) -> str:
-    import litellm  # type: ignore[import-untyped]
-    resp = litellm.completion(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-    )
-    return resp.choices[0].message.content or ""
-
-
-def generate_code(task: str, model: str, agent_index: int) -> tuple[str, str]:
-    """Ask the model to write code for the task. Returns (filename, code)."""
-    prompt = textwrap.dedent(f"""\
-        You are a software engineer (agent {agent_index}) implementing the following task.
-        Write clean, correct Python code.
-
-        TASK: {task}
-
-        Respond with ONLY:
-        FILENAME: <relative filename, e.g. utils.py>
-        ```python
-        <your complete implementation>
-        ```
-
-        No explanations outside the code block.
-    """).strip()
-
-    raw = _llm(prompt, model, max_tokens=1024)
-
-    # Parse filename
-    filename = "output.py"
-    for line in raw.splitlines():
-        if line.startswith("FILENAME:"):
-            filename = line.split(":", 1)[1].strip()
-            break
-
-    # Extract code block
-    code = ""
-    in_block = False
-    lines = []
-    for line in raw.splitlines():
-        if line.startswith("```python"):
-            in_block = True
-            continue
-        if in_block and line.startswith("```"):
-            break
-        if in_block:
-            lines.append(line)
-    code = "\n".join(lines).strip()
-
-    if not code:
-        # Fallback: take everything after FILENAME line
-        after = []
-        past_filename = False
-        for line in raw.splitlines():
-            if line.startswith("FILENAME:"):
-                past_filename = True
-                continue
-            if past_filename:
-                after.append(line)
-        code = "\n".join(after).strip().strip("`").strip()
-
-    return filename, code
-
-
-def evaluate_result(result: AgentResult, task: str, model: str) -> tuple[str, bool]:
-    """Ask the overseer to evaluate a diff and decide merge vs. discard."""
-    prompt = textwrap.dedent(f"""\
-        You are the Shepherd overseer reviewing a sub-agent's implementation.
-
-        ORIGINAL TASK: {task}
-
-        AGENT: {result.agent_index}
-        FILE WRITTEN: {result.file_written}
-
-        CODE:
-        ```python
-        {result.generated_code[:3000]}
-        ```
-
-        Evaluate whether this implementation should be MERGED to the main branch
-        or DISCARDED. Criteria: correctness, completeness, code quality.
-
-        Respond with:
-        DECISION: MERGE  or  DECISION: DISCARD
-        REASON: <one or two sentences>
-    """).strip()
-
-    reasoning = _llm(prompt, model, max_tokens=256)
-    accept = "DECISION: MERGE" in reasoning.upper()
-    return reasoning, accept
-
-
-# ---------------------------------------------------------------------------
-# Workspace + VcsCore setup
-# ---------------------------------------------------------------------------
-
-def _init_git_repo(ws: Path) -> None:
-    """Ensure ws is a git repo with at least one commit."""
-    if (ws / ".git").exists():
-        return
-    subprocess.run(["git", "init", str(ws)], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.email", "shepherd@exp"], capture_output=True)
-    subprocess.run(["git", "-C", str(ws), "config", "user.name", "Shepherd Exp"], capture_output=True)
-    (ws / "README.md").write_text("# Shepherd experiment workspace\n")
-    subprocess.run(["git", "-C", str(ws), "add", "."], capture_output=True, check=True)
-    subprocess.run(["git", "-C", str(ws), "commit", "-m", "init"], capture_output=True, check=True)
-
-
-def _build_vcscore(ws: Path) -> object:
-    from vcs_core import (
-        DeclarativeFilesystemSubstrate,
-        Store,
-        VcsCore,
-        build_builtin_substrate_context,
-    )
-    store = Store(str(ws / ".vcscore"))
-    if store.is_empty:
-        store.create_root_commit()
-    ctx = build_builtin_substrate_context(store, workspace=ws)
-    fs = DeclarativeFilesystemSubstrate(ctx)
-    return VcsCore(str(ws), substrates=[fs], store=store)
-
-
-# ---------------------------------------------------------------------------
-# One agent run: fork → generate → write → commit → evaluate → merge/discard
-# ---------------------------------------------------------------------------
-
-def run_one_agent(
-    *,
-    vcs: object,
-    ground: object,
-    ws: Path,
-    task: str,
-    model: str,
-    agent_index: int,
-) -> AgentResult:
-    from vcs_core import VcsCore
-
-    assert isinstance(vcs, VcsCore)
-
-    uid = uuid.uuid4().hex[:8]
-    scope_name = f"agent-{agent_index}-{uid[:6]}"
-    branch_name = f"vers/agent/{uid[:6]}"
-    wt_dir = ws.parent / f".vers-worktrees/{uid[:6]}"
-    wt_dir.mkdir(parents=True, exist_ok=True)
-
-    result = AgentResult(
-        agent_index=agent_index,
-        scope_name=scope_name,
-        instruction=task,
-    )
-
-    t0 = time.perf_counter()
-
-    # 1. Fork a Vers scope from ground
-    subprocess.run(
-        ["git", "-C", str(ws), "worktree", "add", "-b", branch_name, str(wt_dir)],
-        capture_output=True, check=True,
-    )
-    scope = vcs.fork(ground, scope_name)
-    logger.info("agent %d  forked scope=%s  worktree=%s", agent_index, scope_name, wt_dir)
-
-    # 2. Sub-agent: LLM generates code
-    logger.info("agent %d  generating code…", agent_index)
-    filename, code = generate_code(task, model, agent_index)
-    result.generated_code = code
-    result.file_written = filename
-
-    # 3. Write the generated code into the worktree
-    target = wt_dir / filename
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(code)
-
-    # Stage + commit inside the worktree
-    subprocess.run(["git", "-C", str(wt_dir), "add", "-A"], capture_output=True)
-    subprocess.run(
-        ["git", "-C", str(wt_dir), "commit", "-m", f"agent {agent_index}: {task[:60]}",
-         "--allow-empty-message"],
-        capture_output=True,
-    )
-
-    # Capture diff for the overseer
-    diff_proc = subprocess.run(
-        ["git", "-C", str(ws), "diff", "HEAD", branch_name],
-        capture_output=True, text=True,
-    )
-    result.diff_text = diff_proc.stdout
-
-    # 4. Overseer evaluates the result
-    logger.info("agent %d  evaluating…", agent_index)
-    evaluation, accept = evaluate_result(result, task, model)
-    result.evaluation = evaluation
-    result.accept = accept
-
-    # 5. Merge or discard
-    if accept and code.strip():
-        logger.info("agent %d  ACCEPTED — merging scope=%s", agent_index, scope_name)
-        vcs.merge(scope, ground)
-        result.merged = True
-    else:
-        reason = "overseer rejected" if not accept else "agent produced no code"
-        logger.info("agent %d  REJECTED (%s) — discarding scope=%s", agent_index, reason, scope_name)
-        vcs.discard(scope)
-        result.discarded = True
-
-    # Clean up worktree
-    subprocess.run(
-        ["git", "-C", str(ws), "worktree", "remove", "--force", str(wt_dir)],
-        capture_output=True,
-    )
-
-    result.elapsed_s = round(time.perf_counter() - t0, 3)
-    return result
+    Write the solution to ``output_path``.  The file must be valid Python,
+    include a docstring, and be self-contained (no dependencies not already
+    present in the repository).
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -297,156 +68,158 @@ def run_one_agent(
 
 def run_experiment(
     *,
-    workspace: str,
     task: str,
     n_agents: int,
+    workspace_dir: Path | None,
+    results_dir: Path,
     model: str,
-    results_dir: str | None = None,
-) -> list[AgentResult]:
-    ws = Path(workspace).resolve()
-    _init_git_repo(ws)
+) -> dict:
+    results_dir.mkdir(parents=True, exist_ok=True)
+    log_path = results_dir / "exp_coding_task.log"
+    log = open(log_path, "w")
 
-    vcs = _build_vcscore(ws)
-    vcs.activate()
-    ground = vcs.ground
+    def _log(msg: str) -> None:
+        print(msg)
+        print(msg, file=log, flush=True)
 
-    logger.info("workspace=%s  task=%r  n_agents=%d  model=%s", ws, task[:60], n_agents, model)
+    _log(f"=== Experiment 1: Coding Task ===")
+    _log(f"task       : {task}")
+    _log(f"n_agents   : {n_agents}")
+    _log(f"model      : {model}")
 
-    results: list[AgentResult] = []
-    wall_t0 = time.perf_counter()
+    # --- workspace setup ---
+    cleanup_ws = workspace_dir is None
+    _ws_tmp = None
+    if workspace_dir is None:
+        _ws_tmp = tempfile.TemporaryDirectory(prefix="shepherd-exp1-")
+        workspace_dir = Path(_ws_tmp.name)
+        seed_workspace(workspace_dir, {
+            "utils.py": "# utility module\n",
+            "README.md": f"# Experiment workspace\n\nTask: {task}\n",
+        })
 
-    # VcsCore allows only one live child scope per parent → run sequentially
-    for i in range(n_agents):
-        r = run_one_agent(
-            vcs=vcs,
-            ground=ground,
-            ws=ws,
-            task=task,
-            model=model,
-            agent_index=i,
+    _log(f"workspace  : {workspace_dir}")
+
+    ws = ensure_shepherd_workspace(workspace_dir)
+    try:
+        ws.tasks.register(
+            write_solution,
+            task_id="exp1.write_solution",
+            may_default="ReadWrite",
         )
-        results.append(r)
 
-    wall_elapsed = time.perf_counter() - wall_t0
-    vcs.deactivate()
+        runs = []
+        agent_results = []
+        t_agents_start = time.perf_counter()
 
-    # ── Report ──
-    print("\n" + "=" * 70)
-    print("RESULTS")
-    print("=" * 70)
-    merged   = [r for r in results if r.merged]
-    discarded = [r for r in results if r.discarded]
-    print(f"  task         : {task}")
-    print(f"  n_agents     : {n_agents}")
-    print(f"  model        : {model}")
-    print(f"  merged       : {len(merged)}")
-    print(f"  discarded    : {len(discarded)}")
-    print(f"  wall time    : {wall_elapsed:.1f}s")
-    print()
+        for i in range(n_agents):
+            _log(f"\n--- Agent {i+1}/{n_agents} ---")
+            t0 = time.perf_counter()
+            try:
+                run = ws.run(
+                    "exp1.write_solution",
+                    repo=ws.git_repo(),
+                    args={"task_description": task, "output_path": "solution.py"},
+                    placement="auto",
+                    runtime={"provider": "claude"},
+                )
+                elapsed = time.perf_counter() - t0
+                changed = run.changeset().changed_paths()
+                _log(f"  run_ref    : {run.run_ref}")
+                _log(f"  changed    : {list(changed)}")
+                _log(f"  elapsed    : {elapsed:.2f}s")
+                runs.append(run)
+                agent_results.append({
+                    "agent_idx": i,
+                    "run_ref": run.run_ref,
+                    "status": "ok",
+                    "changed_paths": list(changed),
+                    "elapsed_s": round(elapsed, 3),
+                })
+            except Exception as exc:
+                elapsed = time.perf_counter() - t0
+                _log(f"  ERROR: {exc}")
+                agent_results.append({
+                    "agent_idx": i,
+                    "status": "error",
+                    "error": str(exc),
+                    "elapsed_s": round(elapsed, 3),
+                })
 
-    for r in results:
-        status = "✓ MERGED" if r.merged else "✗ DISCARDED"
-        print(f"  [{status}]  agent {r.agent_index}  scope={r.scope_name}  ({r.elapsed_s}s)")
-        print(f"    file     : {r.file_written}")
-        print(f"    decision : {r.evaluation.strip()[:200]}")
-        if r.generated_code:
-            preview = r.generated_code.strip().splitlines()
-            print(f"    code     : {preview[0][:80]}" + (" …" if len(preview) > 1 else ""))
-        print()
+        t_agents_total = time.perf_counter() - t_agents_start
 
-    summary = {
-        "experiment": "exp_coding_task",
-        "task": task,
-        "n_agents": n_agents,
-        "model": model,
-        "wall_time_s": round(wall_elapsed, 2),
-        "merged": len(merged),
-        "discarded": len(discarded),
-        "results": [
-            {
-                "agent_index": r.agent_index,
-                "scope_name": r.scope_name,
-                "file_written": r.file_written,
-                "merged": r.merged,
-                "discarded": r.discarded,
-                "elapsed_s": r.elapsed_s,
-                "evaluation": r.evaluation[:400],
-                "code_lines": len(r.generated_code.splitlines()),
-                "generated_code": r.generated_code,
-            }
-            for r in results
-        ],
-    }
-    _save_result("exp_coding_task", summary, ws, results_dir)
-    return results
+        # --- overseer evaluation ---
+        _log(f"\n--- Overseer evaluation ({len(runs)} runs) ---")
+        t_eval_start = time.perf_counter()
+        evaluated = evaluate_runs(runs, task, primary_output="solution.py", model=model)
+        for ev in evaluated:
+            _log(f"  run {ev.run.run_ref[:12]}  score={ev.score:.1f}  {ev.rationale}")
 
+        winner = select_best(evaluated, min_score=5.0)
+        t_eval_total = time.perf_counter() - t_eval_start
 
+        if winner:
+            _log(f"\n✅ Selected: {winner.run.run_ref} (score={winner.score:.1f})")
+            _log(f"   {winner.rationale}")
+        else:
+            _log(f"\n⚠️  No run cleared the quality bar; all discarded.")
 
-def _save_result(name: str, data: dict, ws: Path, results_dir: str | None) -> None:
-    payload = json.dumps(data, indent=2)
-    ws_path = ws / f"{name}.json"
-    ws_path.write_text(payload)
-    print(f"Result  → {ws_path}")
-    if results_dir:
-        import datetime
-        rd = Path(results_dir)
-        rd.mkdir(parents=True, exist_ok=True)
-        ts = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
-        out = rd / f"{name}_{ts}.json"
-        out.write_text(payload)
-        print(f"Persisted → {out}")
+        result = {
+            "experiment": "exp_coding_task",
+            "task": task,
+            "n_agents": n_agents,
+            "model": model,
+            "workspace": str(workspace_dir),
+            "agent_results": agent_results,
+            "evaluation": [
+                {
+                    "run_ref": ev.run.run_ref,
+                    "score": ev.score,
+                    "rationale": ev.rationale,
+                    "changed_paths": list(ev.changed_paths),
+                }
+                for ev in evaluated
+            ],
+            "winner_run_ref": winner.run.run_ref if winner else None,
+            "winner_score": winner.score if winner else None,
+            "t_agents_total_s": round(t_agents_total, 3),
+            "t_eval_total_s": round(t_eval_total, 3),
+            "status": "pass",
+        }
+    finally:
+        ws.close()
+        if cleanup_ws and _ws_tmp is not None:
+            _ws_tmp.cleanup()
+        log.close()
+
+    out = results_dir / "exp_coding_task.json"
+    out.write_text(json.dumps(result, indent=2))
+    return result
 
 
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
-def _parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        description="Meta-agent coding experiment: N sequential Vers-scoped LLM sub-agents.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__,
-    )
-    p.add_argument(
-        "--task",
-        default="Add a fibonacci function with memoization to utils.py",
-        help="Coding task for every sub-agent",
-    )
-    p.add_argument("--n-agents", type=int, default=3,
-                   help="Number of sub-agents (default: 3)")
-    p.add_argument("--model", default="claude-opus-4-5",
-                   help="litellm model for both sub-agents and overseer (default: claude-opus-4-5)")
-    p.add_argument("--workspace", default=None,
-                   help="Path to a git repo (default: fresh tmpdir)")
-    p.add_argument("--results-dir", default=None,
-                   help="Directory to persist JSON results for later review")
-    return p
-
-
 def main() -> None:
-    args = _parser().parse_args()
+    p = argparse.ArgumentParser(description="Experiment 1: N agents on a coding task")
+    p.add_argument("--task", default="Add a fibonacci function with memoization to utils.py")
+    p.add_argument("--n-agents", type=int, default=3)
+    p.add_argument("--workspace", type=Path, default=None,
+                   help="Existing workspace dir (default: fresh temp dir)")
+    p.add_argument("--results-dir", type=Path, default=Path("results/exp1"))
+    p.add_argument("--model", default="claude-opus-4-5")
+    args = p.parse_args()
 
-    if args.workspace:
-        ws = args.workspace
-        cleanup = False
-    else:
-        ws = tempfile.mkdtemp(prefix="shepherd-exp-coding-")
-        cleanup = True
-        logger.info("temporary workspace: %s", ws)
-
-    try:
-        run_experiment(
-            workspace=ws,
-            task=args.task,
-            n_agents=args.n_agents,
-            model=args.model,
-            results_dir=args.results_dir,
-        )
-    finally:
-        if cleanup:
-            import shutil
-            shutil.rmtree(ws, ignore_errors=True)
-            shutil.rmtree(Path(ws).parent / ".vers-worktrees", ignore_errors=True)
+    result = run_experiment(
+        task=args.task,
+        n_agents=args.n_agents,
+        workspace_dir=args.workspace,
+        results_dir=args.results_dir,
+        model=args.model,
+    )
+    print(f"\nResult saved → {args.results_dir}/exp_coding_task.json")
+    print(f"Status: {result['status']}")
 
 
 if __name__ == "__main__":
