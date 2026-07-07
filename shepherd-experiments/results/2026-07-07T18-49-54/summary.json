@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-07-07T18-49-54",
+  "model": "claude-opus-4-5",
+  "results_dir": "results/2026-07-07T18-49-54",
+  "total_elapsed_s": 983.9,
+  "passed": 6,
+  "total": 6,
+  "rows": [
+    {
+      "name": "exp_coding_task",
+      "status": "pass",
+      "elapsed_s": 144.0
+    },
+    {
+      "name": "exp_parallel_search",
+      "status": "pass",
+      "elapsed_s": 303.0
+    },
+    {
+      "name": "exp_multi_step_refactor",
+      "status": "pass",
+      "elapsed_s": 208.8
+    },
+    {
+      "name": "bench_scope_lifecycle",
+      "status": "pass",
+      "elapsed_s": 123.1
+    },
+    {
+      "name": "bench_trace_overhead",
+      "status": "pass",
+      "elapsed_s": 60.6
+    },
+    {
+      "name": "bench_parallel_agents",
+      "status": "pass",
+      "elapsed_s": 144.3
+    }
+  ]
+}

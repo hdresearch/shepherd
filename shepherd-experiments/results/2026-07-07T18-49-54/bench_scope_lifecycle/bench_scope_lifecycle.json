@@ -1,0 +1,31 @@
+{
+  "benchmark": "bench_scope_lifecycle",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-bench-lc-i8me9o6z",
+  "select": {
+    "mean_ms": 20442.4,
+    "median_ms": 20427.1,
+    "stdev_ms": 301.9,
+    "min_ms": 20148.4,
+    "max_ms": 20751.6,
+    "n": 3
+  },
+  "discard": {
+    "mean_ms": 20292.2,
+    "median_ms": 20167.2,
+    "stdev_ms": 594.9,
+    "min_ms": 19769.7,
+    "max_ms": 20939.6,
+    "n": 3
+  },
+  "raw_select_s": [
+    20.1484,
+    20.4271,
+    20.7516
+  ],
+  "raw_discard_s": [
+    20.9396,
+    20.1672,
+    19.7697
+  ],
+  "status": "pass"
+}

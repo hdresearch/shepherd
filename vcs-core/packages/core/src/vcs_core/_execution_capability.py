@@ -274,7 +274,22 @@ def verify_execution_negotiation(driver: ExecutionBoundDriver) -> None:
 
 
 def detect_containment_backend() -> Any | None:
-    """The host's jail backend, or ``None`` on a jail-less host (advisory tier only)."""
+    """The host's jail backend, or ``None`` on a jail-less host (advisory tier only).
+
+    When ``SHEPHERD_CONTAINMENT_BACKEND=vers`` is set, uses the Vers VM backend
+    instead of the platform-native jail (Seatbelt/Landlock). The Vers backend
+    dispatches ``launch()`` to ephemeral Vers VMs — full hypervisor isolation
+    with the Shepherd substrate running locally.
+    """
+    override = os.environ.get("SHEPHERD_CONTAINMENT_BACKEND", "").strip().lower()
+    if override == "vers":
+        from vcs_core._vers_containment import VersContainmentBackend
+
+        backend = VersContainmentBackend()
+        if backend.available()[0]:
+            return backend
+        # Fall through to native if Vers is not available
+
     if sys.platform == "darwin":
         from vcs_core._seatbelt_containment import SeatbeltContainmentBackend
 

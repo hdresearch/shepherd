@@ -1,0 +1,67 @@
+{
+  "experiment": "exp_coding_task",
+  "task": "Add a fibonacci function with memoization to solution.py",
+  "n_agents": 3,
+  "model": "claude-opus-4-5",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-exp1-ngcas37i",
+  "agent_results": [
+    {
+      "agent_idx": 0,
+      "run_ref": "run-9d8e29ff0a5d",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 42.547
+    },
+    {
+      "agent_idx": 1,
+      "run_ref": "run-14d2676d15f8",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 46.746
+    },
+    {
+      "agent_idx": 2,
+      "run_ref": "run-a53dc1ca67c5",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 42.348
+    }
+  ],
+  "evaluation": [
+    {
+      "run_ref": "run-9d8e29ff0a5d",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using `@lru_cache(maxsize=None)`, includes comprehensive documentation, proper error handling for edge cases, and follows Python best practices.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-14d2676d15f8",
+      "score": 9.0,
+      "rationale": "The implementation correctly provides a fibonacci function with memoization, includes proper error handling, comprehensive documentation, and uses an iterative approach to avoid recursion limits, though the memoization cache is not persistent across calls (a new cache is created each time unless explicitly passed), which slightly limits the caching benefit for separate calls.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-a53dc1ca67c5",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using Python's built-in lru_cache decorator, includes proper documentation, type hints, input validation, and follows best practices.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    }
+  ],
+  "winner_run_ref": "run-9d8e29ff0a5d",
+  "winner_score": 10.0,
+  "t_agents_total_s": 131.73,
+  "t_eval_total_s": 10.892,
+  "status": "pass"
+}

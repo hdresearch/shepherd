@@ -1,0 +1,32 @@
+{
+  "benchmark": "bench_trace_overhead",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-bench-oh-ta2fz1ls",
+  "n_iters": 3,
+  "shepherd": {
+    "mean_ms": 19798.4,
+    "median_ms": 19701.5,
+    "stdev_ms": 264.7,
+    "min_ms": 19595.8,
+    "max_ms": 20097.9
+  },
+  "git_baseline": {
+    "mean_ms": 68.8,
+    "median_ms": 68.3,
+    "stdev_ms": 4.2,
+    "min_ms": 65.0,
+    "max_ms": 73.3
+  },
+  "overhead_ms": 19729.6,
+  "overhead_pct": 28676.7,
+  "raw_shepherd_s": [
+    19.7015,
+    20.0979,
+    19.5958
+  ],
+  "raw_git_s": [
+    0.0733,
+    0.0683,
+    0.065
+  ],
+  "status": "pass"
+}

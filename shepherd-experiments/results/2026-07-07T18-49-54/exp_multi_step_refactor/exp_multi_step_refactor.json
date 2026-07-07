@@ -1,0 +1,51 @@
+{
+  "experiment": "exp_multi_step_refactor",
+  "function_name": "parse_csv",
+  "spec": "Parse a CSV string into a list of dicts, one per row",
+  "model": "claude-opus-4-5",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-exp3-zcvpb0eg",
+  "steps": [
+    {
+      "step": 1,
+      "name": "write_tests",
+      "run_ref": "run-d171e0c723f9",
+      "status": "selected",
+      "score": 9.0,
+      "rationale": "The test suite is comprehensive, covering basic functionality, edge cases (empty strings, trailing newlines, empty fields, quoted fields with commas/newlines/escaped quotes, CRLF line endings), and error cases, with clear organization and documentation of the assumed contract, though the file appears truncated at the end.",
+      "changed_paths": [
+        "test_solution.py"
+      ],
+      "elapsed_s": 73.88
+    },
+    {
+      "step": 2,
+      "name": "implement_function",
+      "run_ref": "run-785a3fc728f7",
+      "status": "selected",
+      "score": 9.0,
+      "rationale": "The solution is well-implemented using Python's standard csv module with proper error handling, comprehensive docstrings, and handles edge cases like empty input, missing values, and extra fields, though without seeing the actual tests it's impossible to guarantee 100% pass rate.",
+      "changed_paths": [
+        "solution.py",
+        "test_solution.py"
+      ],
+      "elapsed_s": 63.255
+    },
+    {
+      "step": 3,
+      "name": "add_docstrings",
+      "run_ref": "run-657f7184fdf4",
+      "status": "selected",
+      "score": 10.0,
+      "rationale": "The solution provides complete, well-formatted PEP 257 compliant docstrings for all public symbols including the module-level docstring and the public function `parse_csv`, with proper formatting, summary lines, detailed descriptions, and documented parameters, returns, and raises sections.",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 59.614
+    }
+  ],
+  "n_steps_total": 3,
+  "n_steps_selected": 3,
+  "pipeline_complete": true,
+  "total_elapsed_s": 206.955,
+  "status": "pass"
+}
