@@ -10,7 +10,8 @@ always sequential.  This benchmark measures:
 The task is minimal (static file write via Claude) so the numbers reflect
 substrate overhead rather than model generation time.
 
-NOTE: requires jail-capable host + claude CLI + ANTHROPIC_API_KEY.
+Uses the static provider (no LLM call) so timing reflects substrate
+throughput, not model generation time.
 """
 
 from __future__ import annotations
@@ -57,7 +58,7 @@ def _run_batch(ws: object, n: int) -> tuple[float, list[float]]:
             repo=ws.git_repo(),  # type: ignore[attr-defined]
             args={"content": f"# batch n={n} i={i}", "output_path": f"bench_{n}_{i}.py"},
             placement="auto",
-            runtime={"provider": "claude"},
+            runtime={"provider": "static"},
         )
         # Discard so workspace state stays clean for next iteration.
         run.output().discard()

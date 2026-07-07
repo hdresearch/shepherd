@@ -91,17 +91,19 @@ def add_docstrings(
 def _evaluate_single(run: object, task_description: str, path: str, model: str) -> EvaluatedRun:
     """Score a single run with the local overseer."""
     cs = run.changeset()  # type: ignore[attr-defined]
-    changed = cs.changed_paths()
+    changed = cs.changed_paths
     raw_result = cs.read_file(path)
     if raw_result is None and changed:
         raw_result = cs.read_file(changed[0])
         path = changed[0] if changed else path
     raw, _ = raw_result if raw_result else (b"", 0)
-    preview = raw.decode("utf-8", errors="replace")[:800]
+    full_content = raw.decode("utf-8", errors="replace")
+    preview = full_content[:4000]
+    truncated = len(full_content) > 4000
 
     prompt = (
         f"Evaluate this output for the task: {task_description}\n\n"
-        f"FILE: {path}\n```\n{preview}\n```\n\n"
+        f"FILE: {path} ({len(full_content)} bytes{', truncated' if truncated else ''}):\n```\n{preview}\n```\n\n"
         f"Score 0-10. Reply: SCORE: <n>\nRATIONALE: <one sentence>"
     )
     reply = overseer_call(prompt, model=model)
@@ -201,7 +203,7 @@ def run_experiment(
                     runtime={"provider": "claude"},
                 )
                 elapsed = time.perf_counter() - t0
-                changed = run.changeset().changed_paths()
+                changed = run.changeset().changed_paths
                 _log(f"  run_ref  : {run.run_ref}")
                 _log(f"  changed  : {list(changed)}")
                 _log(f"  elapsed  : {elapsed:.2f}s")

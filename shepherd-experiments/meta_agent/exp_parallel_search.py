@@ -128,7 +128,7 @@ def run_experiment(
                     runtime={"provider": "claude"},
                 )
                 elapsed = time.perf_counter() - t0
-                changed = run.changeset().changed_paths()
+                changed = run.changeset().changed_paths
                 _log(f"  run_ref  : {run.run_ref}")
                 _log(f"  changed  : {list(changed)}")
                 _log(f"  elapsed  : {elapsed:.2f}s")

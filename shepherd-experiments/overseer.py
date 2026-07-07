@@ -60,7 +60,7 @@ def evaluate_runs(
     evaluated: list[EvaluatedRun] = []
     for run in runs:
         cs = run.changeset()
-        changed = cs.changed_paths()
+        changed = cs.changed_paths
         # Try to read the primary output, fall back to first changed file.
         raw: bytes | None = None
         chosen_path = primary_output
@@ -73,13 +73,15 @@ def evaluate_runs(
             if raw_result2 is not None:
                 raw, _ = raw_result2
 
-        preview = raw.decode("utf-8", errors="replace")[:800] if raw else "(no output)"
+        full_content = raw.decode("utf-8", errors="replace") if raw else ""
+        preview = full_content[:4000] if full_content else "(no output)"
+        truncated = len(full_content) > 4000
 
         prompt = (
             f"You are evaluating a coding agent's output for the following task:\n\n"
             f"TASK: {task_description}\n\n"
             f"OUTPUT FILE: {chosen_path}\n"
-            f"CONTENT:\n```\n{preview}\n```\n\n"
+            f"CONTENT ({len(full_content)} bytes{', truncated' if truncated else ''}):\n```\n{preview}\n```\n\n"
             f"Changed paths: {list(changed)}\n\n"
             f"Score this output from 0 to 10 (10 = perfect). "
             f"Reply with exactly: SCORE: <number>\nRATIONALE: <one sentence>"
@@ -92,7 +94,7 @@ def evaluate_runs(
             score=score,
             rationale=rationale,
             changed_paths=tuple(changed),
-            code_preview=preview,
+            code_preview=full_content[:800],
         ))
     return evaluated
 
@@ -124,19 +126,26 @@ def select_best(
 def generate_hypotheses(task: str, n: int, *, model: str = _DEFAULT_MODEL) -> list[str]:
     """Ask the overseer to produce *n* distinct implementation approaches for *task*."""
     prompt = (
-        f"You are a software architect. For the task below, generate {n} distinct "
-        f"implementation approaches. Number them 1-{n}. Each approach should be "
-        f"one concise paragraph describing the strategy.\n\nTASK: {task}"
+        f"You are a software architect. For the task below, generate exactly {n} distinct "
+        f"implementation approaches. Format them as:\n\n"
+        f"1. <approach title>: <one paragraph description>\n"
+        f"2. <approach title>: <one paragraph description>\n"
+        f"...\n\n"
+        f"Do NOT use markdown headers or bullet points. Just numbered paragraphs.\n\n"
+        f"TASK: {task}"
     )
     reply = overseer_call(prompt, model=model)
     lines = [ln.strip() for ln in reply.splitlines() if ln.strip()]
     approaches: list[str] = []
     current = ""
+    import re
+    numbered_re = re.compile(r"^(\d+)[.\)]\s+")
     for ln in lines:
-        if ln and ln[0].isdigit() and ln[1:3] in (". ", ") "):
+        m = numbered_re.match(ln)
+        if m:
             if current:
                 approaches.append(current.strip())
-            current = ln[3:].strip() if ln[1] == "." else ln[3:].strip()
+            current = ln[m.end():].strip()
         else:
             current = (current + " " + ln).strip() if current else ln
     if current:

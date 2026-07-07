@@ -12,8 +12,8 @@ The "agent" here is a minimal static task so timing reflects substrate
 overhead, not model generation time.  Use the meta-agent experiments for
 real agent timing.
 
-NOTE: requires a jail-capable host (Linux with Landlock or macOS with
-Seatbelt) and the ``claude`` CLI on PATH with ANTHROPIC_API_KEY set.
+Uses the static provider (no LLM call) so timing reflects substrate
+overhead, not model generation time.
 """
 
 from __future__ import annotations
@@ -83,7 +83,7 @@ def run_benchmark(
                 repo=ws.git_repo(),
                 args={"content": f"# select iter {i}", "output_path": "bench_output.py"},
                 placement="auto",
-                runtime={"provider": "claude"},
+                runtime={"provider": "static"},
             )
             run.output().select()
             elapsed = time.perf_counter() - t0
@@ -100,7 +100,7 @@ def run_benchmark(
                 repo=ws.git_repo(),
                 args={"content": f"# discard iter {i}", "output_path": "bench_discard.py"},
                 placement="auto",
-                runtime={"provider": "claude"},
+                runtime={"provider": "static"},
             )
             run.output().discard()
             elapsed = time.perf_counter() - t0
@@ -109,7 +109,6 @@ def run_benchmark(
 
     finally:
         ws.close()
-        log.close()
 
     def _stats(times: list[float]) -> dict:
         if not times:
@@ -138,6 +137,7 @@ def run_benchmark(
          f"median={result['select'].get('median_ms')} ms")
     _log(f"DISCARD mean={result['discard'].get('mean_ms')} ms  "
          f"median={result['discard'].get('median_ms')} ms")
+    log.close()
 
     out = results_dir / "bench_scope_lifecycle.json"
     out.write_text(json.dumps(result, indent=2))

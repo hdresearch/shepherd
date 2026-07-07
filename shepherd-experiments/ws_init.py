@@ -46,7 +46,16 @@ def ensure_shepherd_workspace(workspace: Path | str) -> Any:
 
 
 def seed_workspace(ws_dir: Path, files: dict[str, str]) -> None:
-    """Write *files* (path → content) into *ws_dir* and commit them to git."""
+    """Write *files* (path → content) into *ws_dir* and commit them to git.
+
+    Initializes a git repo if one does not already exist.
+    """
+    ws_dir = Path(ws_dir)
+    ws_dir.mkdir(parents=True, exist_ok=True)
+    if not (ws_dir / ".git").exists():
+        subprocess.run(
+            ["git", "init", "-b", "main"], cwd=ws_dir, check=True, capture_output=True,
+        )
     for rel_path, content in files.items():
         target = ws_dir / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)

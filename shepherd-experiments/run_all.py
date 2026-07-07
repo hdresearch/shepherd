@@ -67,7 +67,7 @@ def _check_anthropic_key() -> bool:
 def _run_exp_coding_task(results_dir: Path, model: str) -> dict:
     from meta_agent.exp_coding_task import run_experiment
     return run_experiment(
-        task="Add a fibonacci function with memoization to utils.py",
+        task="Add a fibonacci function with memoization to solution.py",
         n_agents=3,
         workspace_dir=None,
         results_dir=results_dir / "exp_coding_task",

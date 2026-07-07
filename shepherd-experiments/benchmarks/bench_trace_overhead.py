@@ -8,8 +8,8 @@ Compares the latency of:
 
 This quantifies the substrate cost described in §5 of the Shepherd paper.
 
-NOTE: requires a jail-capable host and claude CLI (same as other benchmarks).
-The static provider is used so agent generation time is excluded.
+Uses the static provider (no LLM call) so timing reflects substrate
+overhead only, not model generation time.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def _shepherd_roundtrip(ws: object, iteration: int) -> float:
         repo=ws.git_repo(),  # type: ignore[attr-defined]
         args={"marker": f"iter_{iteration}", "output_path": f"bench_{iteration}.py"},
         placement="auto",
-        runtime={"provider": "claude"},
+        runtime={"provider": "static"},
     )
     run.output().discard()
     return time.perf_counter() - t0

@@ -1,0 +1,67 @@
+{
+  "experiment": "exp_coding_task",
+  "task": "Add a fibonacci function with memoization to solution.py",
+  "n_agents": 3,
+  "model": "claude-opus-4-5",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-exp1-2hfdvy8e",
+  "agent_results": [
+    {
+      "agent_idx": 0,
+      "run_ref": "run-c96a9619ac15",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 23.176
+    },
+    {
+      "agent_idx": 1,
+      "run_ref": "run-8297b6f0a338",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 24.485
+    },
+    {
+      "agent_idx": 2,
+      "run_ref": "run-9c77e8e48b61",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 16.151
+    }
+  ],
+  "evaluation": [
+    {
+      "run_ref": "run-c96a9619ac15",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using Python's built-in lru_cache decorator, includes comprehensive documentation, proper error handling, type hints, and demonstrates correct functionality.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-8297b6f0a338",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using functools.lru_cache, includes proper type hints, comprehensive docstrings, input validation, and handles edge cases correctly.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-9c77e8e48b61",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using `@lru_cache`, includes proper documentation, type hints, error handling, and follows Python best practices.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    }
+  ],
+  "winner_run_ref": "run-c96a9619ac15",
+  "winner_score": 10.0,
+  "t_agents_total_s": 63.9,
+  "t_eval_total_s": 7.994,
+  "status": "pass"
+}

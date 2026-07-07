@@ -1,0 +1,47 @@
+{
+  "benchmark": "bench_parallel_agents",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-bench-ag-j8zv84j0",
+  "batch_sizes": [
+    1,
+    2,
+    4
+  ],
+  "batches": [
+    {
+      "n": 1,
+      "total_s": 1.19,
+      "per_run_mean_ms": 1190.4,
+      "per_run_median_ms": 1190.4,
+      "throughput_per_min": 50.4,
+      "raw_per_run_s": [
+        1.1904
+      ]
+    },
+    {
+      "n": 2,
+      "total_s": 2.559,
+      "per_run_mean_ms": 1279.4,
+      "per_run_median_ms": 1279.4,
+      "throughput_per_min": 46.9,
+      "raw_per_run_s": [
+        1.254,
+        1.3048
+      ]
+    },
+    {
+      "n": 4,
+      "total_s": 5.691,
+      "per_run_mean_ms": 1422.8,
+      "per_run_median_ms": 1412.8,
+      "throughput_per_min": 42.2,
+      "raw_per_run_s": [
+        1.3529,
+        1.3869,
+        1.4388,
+        1.5126
+      ]
+    }
+  ],
+  "note": "VcsCore enforces one live child scope per parent; runs are sequential regardless of N.",
+  "status": "pass"
+}

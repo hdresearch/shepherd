@@ -124,7 +124,7 @@ def run_experiment(
                     runtime={"provider": "claude"},
                 )
                 elapsed = time.perf_counter() - t0
-                changed = run.changeset().changed_paths()
+                changed = run.changeset().changed_paths
                 _log(f"  run_ref    : {run.run_ref}")
                 _log(f"  changed    : {list(changed)}")
                 _log(f"  elapsed    : {elapsed:.2f}s")
@@ -203,7 +203,7 @@ def run_experiment(
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Experiment 1: N agents on a coding task")
-    p.add_argument("--task", default="Add a fibonacci function with memoization to utils.py")
+    p.add_argument("--task", default="Add a fibonacci function with memoization to solution.py")
     p.add_argument("--n-agents", type=int, default=3)
     p.add_argument("--workspace", type=Path, default=None,
                    help="Existing workspace dir (default: fresh temp dir)")

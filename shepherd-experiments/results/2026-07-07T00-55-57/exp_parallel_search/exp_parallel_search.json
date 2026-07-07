@@ -1,0 +1,76 @@
+{
+  "experiment": "exp_parallel_search",
+  "problem": "Implement a thread-safe LRU cache in Python",
+  "n_hypotheses": 3,
+  "model": "claude-opus-4-5",
+  "workspace": "/var/folders/9q/jm44hgp1129fn3qwdt8_07040000gn/T/shepherd-exp2-vmzckzmx",
+  "hypotheses": [
+    "Threading Lock with OrderedDict: This approach uses Python's built-in `collections.OrderedDict` combined with a `threading.Lock` to ensure thread safety. The OrderedDict maintains insertion order, and when an item is accessed, it's moved to the end using the `move_to_end()` method, making the front of the dict contain the least recently used items. Every public method (get, put, delete) acquires the lock before performing any operations, ensuring that only one thread can modify the cache at a time. When the cache reaches capacity, the oldest item is removed using `popitem(first=True)`. This is the most straightforward approach and is suitable for most use cases where simplicity and correctness are prioritized over maximum performance.",
+    "Read-Write Lock with Double-Linked List and HashMap: This approach implements a custom doubly-linked list for O(1) node manipulation combined with a dictionary for O(1) lookups, protected by a read-write lock (`threading.RWLock` pattern or using a library like `readerwriterlock`). The read-write lock allows multiple concurrent readers while ensuring exclusive access for writers, significantly improving throughput in read-heavy workloads. The doubly-linked list maintains the access order with head pointing to most recently used and tail to least recently used items. Each node contains key, value, and prev/next pointers, while the hashmap stores key-to-node mappings. This approach offers better concurrency than a simple mutex but adds implementation complexity.",
+    "Segmented/Sharded LRU Cache with Fine-Grained Locking: This approach partitions the cache into multiple segments (typically a power of 2, like 16 or 32), each with its own independent LRU cache and lock. Keys are distributed across segments using a hash function (e.g., `hash(key) % num_segments`), allowing operations on different segments to proceed concurrently without contention. Each segment can be implemented using the simpler OrderedDict approach internally. This design dramatically reduces lock contention in high-concurrency scenarios since threads accessing different segments never block each other. The total cache capacity is divided among segments, and this approach is particularly well-suited for multi-core systems with many concurrent threads, similar to how Java's ConcurrentHashMap achieves scalability."
+  ],
+  "agent_results": [
+    {
+      "hypothesis_idx": 0,
+      "hypothesis": "Threading Lock with OrderedDict: This approach uses Python's built-in `collections.OrderedDict` combined with a `threading.Lock` to ensure thread safety. The OrderedDict maintains insertion order, and when an item is accessed, it's moved to the end using the `move_to_end()` method, making the front of the dict contain the least recently used items. Every public method (get, put, delete) acquires the lock before performing any operations, ensuring that only one thread can modify the cache at a time. When the cache reaches capacity, the oldest item is removed using `popitem(first=True)`. This is the most straightforward approach and is suitable for most use cases where simplicity and correctness are prioritized over maximum performance.",
+      "run_ref": "run-57f109fb497e",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 62.847
+    },
+    {
+      "hypothesis_idx": 1,
+      "hypothesis": "Read-Write Lock with Double-Linked List and HashMap: This approach implements a custom doubly-linked list for O(1) node manipulation combined with a dictionary for O(1) lookups, protected by a read-write lock (`threading.RWLock` pattern or using a library like `readerwriterlock`). The read-write lock allows multiple concurrent readers while ensuring exclusive access for writers, significantly improving throughput in read-heavy workloads. The doubly-linked list maintains the access order with head pointing to most recently used and tail to least recently used items. Each node contains key, value, and prev/next pointers, while the hashmap stores key-to-node mappings. This approach offers better concurrency than a simple mutex but adds implementation complexity.",
+      "run_ref": "run-303e3a066382",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 85.198
+    },
+    {
+      "hypothesis_idx": 2,
+      "hypothesis": "Segmented/Sharded LRU Cache with Fine-Grained Locking: This approach partitions the cache into multiple segments (typically a power of 2, like 16 or 32), each with its own independent LRU cache and lock. Keys are distributed across segments using a hash function (e.g., `hash(key) % num_segments`), allowing operations on different segments to proceed concurrently without contention. Each segment can be implemented using the simpler OrderedDict approach internally. This design dramatically reduces lock contention in high-concurrency scenarios since threads accessing different segments never block each other. The total cache capacity is divided among segments, and this approach is particularly well-suited for multi-core systems with many concurrent threads, similar to how Java's ConcurrentHashMap achieves scalability.",
+      "run_ref": "run-e1cad15cff47",
+      "status": "ok",
+      "changed_paths": [
+        "solution.py"
+      ],
+      "elapsed_s": 61.495
+    }
+  ],
+  "evaluation": [
+    {
+      "run_ref": "run-57f109fb497e",
+      "score": 3.0,
+      "rationale": "The solution file is truncated at 7950 bytes and cuts off mid-function (the `delete` method is incomplete), making it a non-functional, incomplete implementation that cannot be executed or properly evaluated.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-303e3a066382",
+      "score": 3.0,
+      "rationale": "The output is truncated at 12976 bytes, cutting off in the middle of a method definition, so the solution is incomplete and would not execute properly, despite showing a well-designed approach with a reader-writer lock and doubly-linked list structure.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    },
+    {
+      "run_ref": "run-e1cad15cff47",
+      "score": 2.0,
+      "rationale": "The output is truncated mid-implementation, cutting off the LRUCache class before its methods are defined, making the solution incomplete and non-functional as submitted.",
+      "changed_paths": [
+        "solution.py"
+      ]
+    }
+  ],
+  "winner_run_ref": null,
+  "winner_score": null,
+  "t_hypothesis_gen_s": 11.398,
+  "t_agents_total_s": 209.625,
+  "t_eval_total_s": 10.156,
+  "status": "pass"
+}
