@@ -1,0 +1,17 @@
+{
+  "benchmark": "bench_agent_roundtrip",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "n_iters": 3,
+  "roundtrip": {
+    "mean_ms": 32632.2,
+    "median_ms": 32415.8,
+    "stdev_ms": 746.9
+  },
+  "raw_roundtrip_s": [
+    32.416,
+    32.017,
+    33.463
+  ],
+  "status": "pass"
+}

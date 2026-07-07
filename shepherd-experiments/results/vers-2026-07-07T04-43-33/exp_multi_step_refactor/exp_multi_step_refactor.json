@@ -1,0 +1,53 @@
+{
+  "experiment": "exp_multi_step_refactor",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "function_name": "parse_csv",
+  "spec": "Parse a CSV string into a list of dicts, one per row",
+  "model": "claude-opus-4-5",
+  "steps": [
+    {
+      "step": 1,
+      "name": "write_tests",
+      "vm_id": "46e0f5c7-358b-4765-b7aa-4dd844fc350d",
+      "status": "selected",
+      "score": 9.0,
+      "rationale": "Excellent comprehensive test suite covering normal cases, edge cases, and error handling with clear documentation, though it assumes a specific implementation style (csv.DictReader-like) and some tests like quoted fields with embedded newlines may be overly specific for the minimal spec given.",
+      "changed_files": [
+        "test_solution.py",
+        ".pytest_cache/CACHEDIR.TAG",
+        ".pytest_cache/.gitignore",
+        ".pytest_cache/README.md"
+      ],
+      "elapsed_s": 141.575
+    },
+    {
+      "step": 2,
+      "name": "implement_function",
+      "vm_id": "de44e4d8-a903-4518-8a72-97b70e7fa633",
+      "status": "selected",
+      "score": 9.0,
+      "rationale": "The solution correctly implements CSV parsing using Python's standard csv module with DictReader, handles edge cases like None input and non-string input appropriately, and should pass standard CSV parsing tests including quoted fields with commas, embedded newlines, and escaped quotes.",
+      "changed_files": [
+        ".pytest_cache/CACHEDIR.TAG",
+        ".pytest_cache/.gitignore",
+        ".pytest_cache/README.md",
+        "solution.py"
+      ],
+      "elapsed_s": 51.334
+    },
+    {
+      "step": 3,
+      "name": "add_docstrings",
+      "vm_id": "42101ad4-947f-4be6-828f-75a0a091e6c7",
+      "status": "error",
+      "error": "no output",
+      "elapsed_s": 32.889
+    }
+  ],
+  "n_steps_total": 3,
+  "n_steps_selected": 2,
+  "pipeline_complete": false,
+  "total_elapsed_s": 252.159,
+  "status": "pass"
+}

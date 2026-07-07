@@ -1,0 +1,72 @@
+{
+  "experiment": "exp_parallel_search",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "problem": "Implement a thread-safe LRU cache in Python",
+  "n_hypotheses": 3,
+  "model": "claude-opus-4-5",
+  "hypotheses": [
+    "Threading Lock with OrderedDict: This approach uses Python's built-in `collections.OrderedDict` combined with a `threading.Lock` to ensure thread safety. The OrderedDict maintains insertion order, and when an item is accessed, it's moved to the end using the `move_to_end()` method, making the least recently used items naturally bubble to the front. Every operation (get, put, delete) acquires the lock before modifying the data structure, ensuring that only one thread can access the cache at a time. When the cache exceeds capacity, the first item (oldest) is removed using `popitem(first=True)`. This is the simplest and most Pythonic approach, with O(1) average time complexity for all operations.",
+    "Read-Write Lock with Double-Linked List and HashMap: This approach implements a custom doubly-linked list combined with a dictionary for O(1) lookups, wrapped with a read-write lock (`threading.RWLock` pattern or using a library like `readerwriterlock`). The doubly-linked list maintains the access order with head pointing to most recently used and tail to least recently used, while the dictionary maps keys directly to list nodes. Read operations (cache hits) acquire only a read lock initially, upgrading to write lock only when reordering is needed, allowing multiple concurrent readers. This approach offers better performance under read-heavy workloads by reducing lock contention while maintaining thread safety for writes.",
+    "Lock-Free Design with Thread-Local Caches and Eventual Consistency: This approach uses a combination of a shared `functools.lru_cache` or atomic operations with thread-local storage to minimize contention. Each thread maintains its own small local cache that serves as a first-level lookup, while a shared global cache using `threading.local()` combined with periodic synchronization handles cross-thread data. The implementation leverages Python's GIL for certain atomic operations and uses compare-and-swap patterns where possible. Updates are batched and propagated asynchronously, accepting eventual consistency for dramatically improved throughput in high-concurrency scenarios. This is most suitable for applications where slight staleness is acceptable but maximum performance is required."
+  ],
+  "agent_results": [
+    {
+      "hypothesis_idx": 0,
+      "hypothesis": "Threading Lock with OrderedDict: This approach uses Python's built-in `collections.OrderedDict` combined with a `threading.Lock` to ensure thread safety. The OrderedDict maintains insertion order, and when an item is accessed, it's moved to the end using the `move_to_end()` method, making the least recently used items naturally bubble to the front. Every operation (get, put, delete) acquires the lock before modifying the data structure, ensuring that only one thread can access the cache at a time. When the cache exceeds capacity, the first item (oldest) is removed using `popitem(first=True)`. This is the simplest and most Pythonic approach, with O(1) average time complexity for all operations.",
+      "vm_id": "8b857a44-41f5-4d8f-93fd-6cc5fced003b",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 63.074,
+      "error": null
+    },
+    {
+      "hypothesis_idx": 1,
+      "hypothesis": "Read-Write Lock with Double-Linked List and HashMap: This approach implements a custom doubly-linked list combined with a dictionary for O(1) lookups, wrapped with a read-write lock (`threading.RWLock` pattern or using a library like `readerwriterlock`). The doubly-linked list maintains the access order with head pointing to most recently used and tail to least recently used, while the dictionary maps keys directly to list nodes. Read operations (cache hits) acquire only a read lock initially, upgrading to write lock only when reordering is needed, allowing multiple concurrent readers. This approach offers better performance under read-heavy workloads by reducing lock contention while maintaining thread safety for writes.",
+      "vm_id": "d38742af-c96b-49e6-83cd-be9343de4753",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 102.703,
+      "error": null
+    },
+    {
+      "hypothesis_idx": 2,
+      "hypothesis": "Lock-Free Design with Thread-Local Caches and Eventual Consistency: This approach uses a combination of a shared `functools.lru_cache` or atomic operations with thread-local storage to minimize contention. Each thread maintains its own small local cache that serves as a first-level lookup, while a shared global cache using `threading.local()` combined with periodic synchronization handles cross-thread data. The implementation leverages Python's GIL for certain atomic operations and uses compare-and-swap patterns where possible. Updates are batched and propagated asynchronously, accepting eventual consistency for dramatically improved throughput in high-concurrency scenarios. This is most suitable for applications where slight staleness is acceptable but maximum performance is required.",
+      "vm_id": "667f7664-cf06-4a93-b6ac-ed0323534ce4",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 84.469,
+      "error": null
+    }
+  ],
+  "evaluations": [
+    {
+      "hypothesis_idx": 0,
+      "vm_id": "8b857a44-41f5-4d8f-93fd-6cc5fced003b",
+      "score": 9.0,
+      "rationale": "Excellent implementation with proper thread-safety using RLock, correct LRU eviction via OrderedDict, comprehensive API with get/put/delete/peek/pop/clear operations, good documentation, and O(1) operations, though it could benefit from additional features like TTL support or a more sophisticated concurrent access pattern beyond simple locking."
+    },
+    {
+      "hypothesis_idx": 1,
+      "vm_id": "d38742af-c96b-49e6-83cd-be9343de4753",
+      "score": 9.0,
+      "rationale": "This is an excellent, production-quality implementation featuring a well-designed read-write lock with writer preference, proper doubly-linked list with sentinels for O(1) operations, comprehensive API with get/put/peek/pop/clear/stats methods, thorough documentation, and a concurrent stress test - the only minor issues are the slightly unusual choice to increment miss counter under write lock in get() and the potential for a brief inconsistency window during lock upgrade, but these are reasonable design tradeoffs."
+    },
+    {
+      "hypothesis_idx": 2,
+      "vm_id": "667f7664-cf06-4a93-b6ac-ed0323534ce4",
+      "score": 8.0,
+      "rationale": "The implementation provides a well-documented, functional thread-safe LRU cache with proper use of locks, OrderedDict for LRU ordering, and a decorator interface, though the thread-local caching adds complexity that could introduce subtle consistency issues, and the `_hits`/`_misses` counters have race conditions when accessed outside the lock."
+    }
+  ],
+  "winner_idx": 0,
+  "winner_score": 9.0,
+  "t_agents_total_s": 269.695,
+  "status": "pass"
+}

@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-07-07T04-43-33",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "model": "claude-opus-4-5",
+  "results_dir": "results/vers-2026-07-07T04-43-33",
+  "total_elapsed_s": 836.5,
+  "passed": 5,
+  "total": 5,
+  "rows": [
+    {
+      "name": "exp_coding_task",
+      "status": "pass",
+      "elapsed_s": 132.4
+    },
+    {
+      "name": "exp_parallel_search",
+      "status": "pass",
+      "elapsed_s": 294.7
+    },
+    {
+      "name": "exp_multi_step_refactor",
+      "status": "pass",
+      "elapsed_s": 252.2
+    },
+    {
+      "name": "bench_vm_lifecycle",
+      "status": "pass",
+      "elapsed_s": 59.2
+    },
+    {
+      "name": "bench_agent_roundtrip",
+      "status": "pass",
+      "elapsed_s": 98.0
+    }
+  ]
+}

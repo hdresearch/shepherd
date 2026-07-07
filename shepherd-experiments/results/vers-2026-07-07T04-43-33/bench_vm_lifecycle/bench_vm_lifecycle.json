@@ -1,0 +1,27 @@
+{
+  "benchmark": "bench_vm_lifecycle",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "n_iters": 3,
+  "branch": {
+    "mean_ms": 10216.2,
+    "median_ms": 10121.9,
+    "stdev_ms": 476.8
+  },
+  "exec": {
+    "mean_ms": 2892.5,
+    "median_ms": 2861.7,
+    "stdev_ms": 79.9
+  },
+  "delete": {
+    "mean_ms": 6613.9,
+    "median_ms": 6651.2,
+    "stdev_ms": 89.8
+  },
+  "roundtrip": {
+    "mean_ms": 19722.6,
+    "median_ms": 19466.0,
+    "stdev_ms": 453.3
+  },
+  "status": "pass"
+}

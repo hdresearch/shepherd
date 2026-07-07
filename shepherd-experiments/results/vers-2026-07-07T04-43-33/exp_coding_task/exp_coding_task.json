@@ -1,0 +1,64 @@
+{
+  "experiment": "exp_coding_task",
+  "infrastructure": "vers_vm",
+  "golden_image": "54e730b4-1a21-4495-b638-c9183d8bde26",
+  "task": "Add a fibonacci function with memoization to solution.py",
+  "n_agents": 3,
+  "model": "claude-opus-4-5",
+  "agent_results": [
+    {
+      "agent_idx": 0,
+      "vm_id": "00775682-3eb5-4760-926c-8bc9d7c1c42d",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 34.197,
+      "error": null
+    },
+    {
+      "agent_idx": 1,
+      "vm_id": "e97bb5e1-626e-42a4-9916-7df4825447bb",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 37.446,
+      "error": null
+    },
+    {
+      "agent_idx": 2,
+      "vm_id": "52a61a4b-276f-4c6b-ba2f-925475b8b965",
+      "status": "ok",
+      "changed_files": [
+        "solution.py"
+      ],
+      "elapsed_s": 33.215,
+      "error": null
+    }
+  ],
+  "evaluations": [
+    {
+      "agent_idx": 0,
+      "vm_id": "00775682-3eb5-4760-926c-8bc9d7c1c42d",
+      "score": 10.0,
+      "rationale": "The solution correctly implements a fibonacci function with memoization using Python's built-in lru_cache decorator, includes proper documentation, handles edge cases with appropriate error handling, and provides a clear demonstration of the function's usage."
+    },
+    {
+      "agent_idx": 1,
+      "vm_id": "e97bb5e1-626e-42a4-9916-7df4825447bb",
+      "score": 10.0,
+      "rationale": "The solution correctly implements a fibonacci function with memoization using Python's built-in lru_cache decorator, includes proper documentation, input validation, and follows best practices."
+    },
+    {
+      "agent_idx": 2,
+      "vm_id": "52a61a4b-276f-4c6b-ba2f-925475b8b965",
+      "score": 10.0,
+      "rationale": "The solution perfectly implements a fibonacci function with memoization using Python's `lru_cache` decorator, includes proper error handling for negative inputs, follows the standard F(0)=0, F(1)=1 definition, has comprehensive documentation, and includes a helpful test block."
+    }
+  ],
+  "winner_idx": 0,
+  "winner_score": 10.0,
+  "t_agents_total_s": 124.517,
+  "status": "pass"
+}
